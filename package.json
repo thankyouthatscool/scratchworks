@@ -1,0 +1,14 @@
+{
+  "name": "scratchworks",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "git@github.com:thankyouthatscool/scratchworks.git",
+  "author": "thankyouthatscool <85291297+thankyouthatscool@users.noreply.github.com>",
+  "license": "MIT",
+  "private": true,
+  "workspaces": {
+    "packages": [
+      "apps/*"
+    ]
+  }
+}
