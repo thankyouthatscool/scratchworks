@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { Text, View } from "react-native";
+import { View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { AppHeader } from "@components/AppHeader";
@@ -41,10 +41,6 @@ export const AppRoot = () => {
 
     dispatch(setInitializationState(true));
   }, [isInitializationComplete]);
-
-  useEffect(() => {
-    console.log(JSON.stringify(torrents));
-  }, [torrents]);
 
   return (
     <SafeAreaView>

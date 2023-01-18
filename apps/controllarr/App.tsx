@@ -5,9 +5,17 @@ import { useState } from "react";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { Provider as ReduxProvider } from "react-redux";
 
+import Constants from "expo-constants";
+
 import { AppRoot } from "@components/AppRoot";
 import { store } from "@store";
 import { trpc } from "@utils/trpc";
+
+const API_URL: string = Constants.expoConfig?.extra?.API_URL;
+const CF_ACCESS_CLIENT_ID: string =
+  Constants.expoConfig?.extra?.["CF-Access-Client-Id"];
+const CF_ACCESS_CLIENT_SECRET: string =
+  Constants.expoConfig?.extra?.["CF-Access-Client-Secret"];
 
 export const App = () => {
   const [queryClient] = useState(() => new QueryClient());
@@ -15,7 +23,13 @@ export const App = () => {
     trpc.createClient({
       links: [
         httpBatchLink({
-          url: "http://192.168.0.96:5000/trpc",
+          url: `${API_URL}/trpc`,
+          headers() {
+            return {
+              "CF-Access-Client-Id": CF_ACCESS_CLIENT_ID,
+              "CF-Access-Client-Secret": CF_ACCESS_CLIENT_SECRET,
+            };
+          },
         }),
       ],
     })
