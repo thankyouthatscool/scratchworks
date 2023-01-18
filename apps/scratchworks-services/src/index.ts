@@ -7,6 +7,7 @@ import { exit } from "process";
 import { appRouter, createContext } from "./trpc";
 
 export * from "./trpc";
+export * from "./types";
 
 const NODE_ENV = process.env.NODE_ENV;
 const SERVER_PORT = process.env.SERVER_PORT;
