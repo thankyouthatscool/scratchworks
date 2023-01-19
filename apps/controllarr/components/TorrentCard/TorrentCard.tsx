@@ -3,7 +3,11 @@ import type { Torrent } from "@scratchworks/scratchworks-services";
 import { FC, ComponentPropsWithoutRef } from "react";
 import { Pressable, Text, View } from "react-native";
 
-const stateLookup = (stateCode: number) => {
+import { useAppDispatch } from "@hooks";
+import { setTorrents } from "@store";
+import { trpc } from "@utils/trpc";
+
+const torrentStateLookup = (stateCode: number) => {
   switch (stateCode) {
     case 0:
       return "stopped";
@@ -31,6 +35,20 @@ type TorrentCardProps = {
 export const TorrentCard: FC<
   TorrentCardProps & ComponentPropsWithoutRef<typeof Pressable>
 > = ({ torrentData }) => {
+  const dispatch = useAppDispatch();
+
+  const { mutateAsync: getAllTorrents } =
+    trpc.controllarr.getAllTorrents.useMutation();
+
+  const { mutateAsync: deleteTorrent } =
+    trpc.controllarr.deleteTorrent.useMutation();
+
+  const handleRefreshTorrents = async () => {
+    const res = await getAllTorrents();
+
+    dispatch(setTorrents(res));
+  };
+
   return (
     <Pressable
       style={{
@@ -51,8 +69,8 @@ export const TorrentCard: FC<
         >
           <MaterialIcons
             name={
-              stateLookup(torrentData.status) === "downloading" ||
-              stateLookup(torrentData.status) === "seeding"
+              torrentStateLookup(torrentData.status) === "downloading" ||
+              torrentStateLookup(torrentData.status) === "seeding"
                 ? "pause"
                 : "play-arrow"
             }
@@ -63,12 +81,18 @@ export const TorrentCard: FC<
           <ProgressBar
             progress={torrentData.percentDone * 100}
             rateDownload={torrentData.rateDownload}
-            status={stateLookup(torrentData.status)}
+            status={torrentStateLookup(torrentData.status)}
           />
         </View>
         <Pressable
-          onPress={() => {
-            console.log("del");
+          onPress={async () => {
+            const deleteTorrentRes = await deleteTorrent([
+              torrentData.hashString,
+            ]);
+
+            if (deleteTorrentRes === "success") {
+              await handleRefreshTorrents();
+            }
           }}
         >
           <MaterialIcons color="red" name="delete" size={30} />

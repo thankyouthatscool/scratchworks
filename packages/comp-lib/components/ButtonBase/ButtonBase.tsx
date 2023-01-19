@@ -18,6 +18,7 @@ const ICON_NEGATIVE_MARGIN = -8;
 export const ButtonBase: FC<
   ButtonBase & ComponentPropsWithoutRef<typeof Pressable>
 > = ({
+  disabled,
   icon,
   buttonType = "primary",
   onLongPress,
@@ -28,12 +29,12 @@ export const ButtonBase: FC<
   if (buttonType === "primary") {
     return (
       <Pressable
-        onLongPress={onLongPress}
-        onPress={onPress}
+        onLongPress={disabled ? null : onLongPress}
+        onPress={disabled ? null : onPress}
         style={({ pressed }) => ({
           alignItems: "center",
           alignSelf: "flex-start",
-          backgroundColor: "white",
+          backgroundColor: disabled ? "grey" : "white",
           borderRadius: BORDER_RADIUS,
           elevation: pressed ? 1 : ELEVATION,
           flexDirection: "row",

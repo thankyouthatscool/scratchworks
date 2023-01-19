@@ -1,0 +1,50 @@
+version: "2"
+services:
+  scratchworks-services:
+    container_name: scratchworks-services
+    image: ozahnitko/scratchworks-services:dev-latest
+    ports:
+      - 5000:5000
+    env_file:
+      - stack.env
+    volumes:
+      - /media/sasha/simplejack/downloads:/root/downloads
+    restart: unless-stopped
+# version: "2"
+# services:
+#   scratchworks-backend-server:
+#     container_name: scratchworks-backend-server
+#     image: ozahnitko/scratchworks-backend-server:dev-latest
+#     ports:
+#       - 5000:5000
+#     env_file:
+#       - stack.env
+#     volumes:
+#       - /media/sasha/simplejack/downloads:/root/downloads
+#     restart: unless-stopped
+#   db:
+#     container_name: db
+#     image: postgres:14.3-alpine
+#     environment:
+#       - POSTGRES_USER=postgres
+#       - POSTGRES_PASSWORD=postgres
+#     ports:
+#       - 5432:5432
+#     volumes:
+#       - db:/var/lib/postgresql/data
+#     restart: unless-stopped
+#   pgadmin:
+#     container_name: pgadmin
+#     image: dpage/pgadmin4:latest
+#     environment:
+#       - PGADMIN_DEFAULT_EMAIL=admin@admin.com
+#       - PGADMIN_DEFAULT_PASSWORD=password
+#       - PGADMIN_LISTEN_PORT=80
+#     ports:
+#       - 8280:80
+#     volumes:
+#       - pgadmin:/var/lib/pgadmin
+#     restart: unless-stopped
+# volumes:
+#   db:
+#   pgadmin:

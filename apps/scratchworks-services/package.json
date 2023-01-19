@@ -6,7 +6,13 @@
   "license": "MIT",
   "dev": "dotenv -e .env nodemon",
   "scripts": {
-    "dev": "dotenv -e .env nodemon"
+    "prebuild": "rm -rf build",
+    "build": "tsc",
+    "dev": "dotenv -e .env nodemon",
+    "image:build": "docker build . -t ozahnitko/scratchworks-services:dev-latest",
+    "image:push": "docker push ozahnitko/scratchworks-services:dev-latest",
+    "image:run": "docker run -d --env-file .env --env NODE_ENV=prod --name scratchworks-services ozahnitko/scratchworks-services:dev-latest",
+    "start:prod": "node ./build/index.js"
   },
   "dependencies": {
     "@trpc/server": "^10.9.0",
