@@ -1,4 +1,7 @@
 import http from "http";
+import { existsSync } from "node:fs";
+import { readdir, rm } from "node:fs/promises";
+import path from "node:path";
 import { z } from "zod";
 
 import { publicProcedure, router } from "./index";
@@ -170,11 +173,34 @@ const deleteTorrent = publicProcedure
     return parsedResult.result;
   });
 
+const cleanDownloadsDir = publicProcedure
+  .input(z.string().optional())
+  .mutation(async () => {
+    const DOWNLOADS = path.join(process.env.PWD!, process.env.DOWNLOADS_DIR!);
+
+    const files = await readdir(DOWNLOADS);
+
+    if (existsSync(DOWNLOADS)) {
+      await Promise.all(
+        files.map(
+          async (file) =>
+            await rm(path.join(DOWNLOADS, file), {
+              force: true,
+              recursive: true,
+            })
+        )
+      );
+    }
+
+    return "success";
+  });
+
 export const controllarrRouter = router({
   getAllTorrents,
   pauseTorrent,
   resumeTorrent,
   deleteTorrent,
+  cleanDownloadsDir,
 });
 
 export const inertiionRouter = router({

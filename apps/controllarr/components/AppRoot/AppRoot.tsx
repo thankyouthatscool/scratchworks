@@ -7,6 +7,7 @@ import { TorrentCard } from "@components/TorrentCard";
 import { useAppDispatch, useAppSelector } from "@hooks";
 import { setInitializationState, setTorrents } from "@store";
 import { trpc } from "@utils/trpc";
+import { ButtonBase } from "@/../../packages/comp-lib";
 
 export const AppRoot = () => {
   const dispatch = useAppDispatch();
@@ -17,6 +18,9 @@ export const AppRoot = () => {
 
   const { mutateAsync: getAllTorrents } =
     trpc.controllarr.getAllTorrents.useMutation();
+
+  const { mutateAsync: cleanDownloadsDir } =
+    trpc.controllarr.cleanDownloadsDir.useMutation();
 
   const handleInitialLoad = async () => {
     try {
@@ -46,6 +50,12 @@ export const AppRoot = () => {
     <SafeAreaView>
       <AppHeader />
       <View style={{ margin: 8 }}>
+        <ButtonBase
+          onPress={async () => {
+            await cleanDownloadsDir();
+          }}
+          title="delete"
+        />
         {torrents.map((torrent) => {
           return <TorrentCard key={torrent.hashString} torrentData={torrent} />;
         })}
