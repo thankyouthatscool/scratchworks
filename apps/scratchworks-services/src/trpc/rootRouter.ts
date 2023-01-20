@@ -176,23 +176,27 @@ const deleteTorrent = publicProcedure
 const cleanDownloadsDir = publicProcedure
   .input(z.string().optional())
   .mutation(async () => {
-    const DOWNLOADS = path.join(process.env.PWD!, process.env.DOWNLOADS_DIR!);
+    try {
+      const DOWNLOADS_DIR = path.resolve(process.env.DOWNLOADS_DIR!);
 
-    const files = await readdir(DOWNLOADS);
+      const files = await readdir(DOWNLOADS_DIR);
 
-    if (existsSync(DOWNLOADS)) {
-      await Promise.all(
-        files.map(
-          async (file) =>
-            await rm(path.join(DOWNLOADS, file), {
-              force: true,
-              recursive: true,
-            })
-        )
-      );
+      if (existsSync(process.env.DOWNLOADS_DIR!)) {
+        await Promise.all(
+          files.map(
+            async (file) =>
+              await rm(path.join(DOWNLOADS_DIR, file), {
+                force: true,
+                recursive: true,
+              })
+          )
+        );
+      }
+
+      return "success";
+    } catch {
+      return "fail";
     }
-
-    return "success";
   });
 
 export const controllarrRouter = router({

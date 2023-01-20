@@ -52,7 +52,15 @@ export const AppRoot = () => {
       <View style={{ margin: 8 }}>
         <ButtonBase
           onPress={async () => {
-            await cleanDownloadsDir();
+            try {
+              const res = await cleanDownloadsDir();
+
+              if (res === "success") {
+                console.log(res);
+              } else {
+                console.log("something went wrong");
+              }
+            } catch {}
           }}
           title="delete"
         />
