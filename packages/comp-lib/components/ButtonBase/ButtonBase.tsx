@@ -5,7 +5,6 @@ import { Button, Pressable, Text } from "react-native";
 interface ButtonBase {
   icon?: "delete" | "pause" | "play-arrow";
   buttonType?: "danger" | "primary" | "secondary";
-  buttonType?: "danger" | "primary" | "secondary";
   title?: string;
 }
 
@@ -13,7 +12,7 @@ const APP_PADDING = 8;
 const BORDER_RADIUS = 5;
 const ELEVATION = 4;
 const FONT_SIZE = 14;
-const ICON_SIZE = 30;
+const ICON_SIZE = 20;
 const ICON_NEGATIVE_MARGIN = -8;
 
 export const ButtonBase: FC<
@@ -58,7 +57,27 @@ export const ButtonBase: FC<
         <Text style={{ fontSize: FONT_SIZE }}>{title}</Text>
       </Pressable>
     );
-  } else {
-    return <Button title="yes" />;
   }
+
+  if (buttonType === "danger") {
+    return (
+      <Pressable
+        style={({ pressed }) => ({
+          alignItems: "center",
+          alignSelf: "flex-start",
+          backgroundColor: disabled ? "grey" : "red",
+          borderRadius: BORDER_RADIUS,
+          elevation: pressed ? 1 : ELEVATION,
+          flexDirection: "row",
+          padding: APP_PADDING,
+          //   @ts-ignore
+          ...style,
+        })}
+      >
+        <Text style={{ color: "white", fontSize: FONT_SIZE }}>{title}</Text>
+      </Pressable>
+    );
+  }
+
+  return <Button title="yes" />;
 };

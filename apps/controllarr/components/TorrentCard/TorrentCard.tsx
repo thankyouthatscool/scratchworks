@@ -1,7 +1,7 @@
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import type { Torrent } from "@scratchworks/scratchworks-services";
-import { FC, ComponentPropsWithoutRef, useState } from "react";
-import { Button, Modal, Pressable, Text, View } from "react-native";
+import { FC, ComponentPropsWithoutRef, useState, useEffect } from "react";
+import { Modal, Pressable, Text, View } from "react-native";
 
 import { useAppDispatch, useToast } from "@hooks";
 import { setTorrents } from "@store";
@@ -36,12 +36,17 @@ type TorrentCardProps = {
 export const TorrentCard: FC<
   TorrentCardProps & ComponentPropsWithoutRef<typeof Pressable>
 > = ({ torrentData }) => {
+  // Hooks
   const dispatch = useAppDispatch();
 
   const { showToast } = useToast();
 
+  // State
   const [visibleModal, setVisibleModal] = useState<string | null>(null);
 
+  const [historicTorrentData, setHistoricTorrentData] = useState<Torrent[]>([]);
+
+  // trpc
   const { mutateAsync: getAllTorrents } =
     trpc.controllarr.getAllTorrents.useMutation();
 
@@ -54,11 +59,17 @@ export const TorrentCard: FC<
   const { mutateAsync: deleteTorrent } =
     trpc.controllarr.deleteTorrent.useMutation();
 
+  // Handlers
   const handleRefreshTorrents = async () => {
     const res = await getAllTorrents();
 
     dispatch(setTorrents(res));
   };
+
+  // Effects
+  useEffect(() => {
+    setHistoricTorrentData((htd) => [...htd.slice(-19), torrentData]);
+  }, [torrentData]);
 
   return (
     <Pressable
@@ -140,62 +151,77 @@ export const TorrentCard: FC<
           >
             <View
               style={{
-                backgroundColor: "white",
-                borderColor: "red",
                 borderRadius: 5,
-                borderWidth: 2,
-                elevation: 10,
-                margin: 8,
-                padding: 8,
+                flex: 1,
                 justifyContent: "center",
+                margin: 8,
               }}
             >
-              <Text
-                style={{ color: "red", fontSize: 16 * 1.5, fontWeight: "500" }}
-              >
-                Deleting
-              </Text>
-              <Text style={{ marginBottom: 8 }}>{torrentData.name}</Text>
-              <ProgressBar
-                downloadedEver={torrentData.downloadedEver}
-                progress={torrentData.percentDone * 100}
-                rateDownload={torrentData.rateDownload}
-                status={torrentStateLookup(torrentData.status)}
-                totalSize={torrentData.totalSize}
-              />
               <View
                 style={{
-                  flexDirection: "row",
-                  marginTop: 8,
+                  backgroundColor: "white",
+                  borderColor: "red",
+                  borderWidth: 2,
+                  borderRadius: 5,
+                  elevation: 10,
+                  padding: 8,
                 }}
               >
-                <ButtonBase
-                  onPress={() => {
-                    setVisibleModal(() => null);
+                <Text
+                  style={{
+                    color: "red",
+                    fontSize: 16 * 1.5,
+                    fontWeight: "500",
                   }}
-                  style={{ marginRight: 8 }}
-                  title="Cancel"
+                >
+                  Deleting
+                </Text>
+                <Text style={{ marginBottom: 8 }}>{torrentData.name}</Text>
+                <ProgressBar
+                  downloadedEver={torrentData.downloadedEver}
+                  progress={torrentData.percentDone * 100}
+                  rateDownload={torrentData.rateDownload}
+                  status={torrentStateLookup(torrentData.status)}
+                  totalSize={torrentData.totalSize}
                 />
-                <ButtonBase
-                  onPress={async () => {
-                    try {
-                      const res = await deleteTorrent([torrentData.hashString]);
+                <View
+                  style={{
+                    alignSelf: "flex-end",
+                    flexDirection: "row",
+                    marginTop: 8,
+                  }}
+                >
+                  <ButtonBase
+                    onPress={() => {
+                      setVisibleModal(() => null);
+                    }}
+                    style={{ marginRight: 8 }}
+                    title="Cancel"
+                  />
+                  <ButtonBase
+                    buttonType="danger"
+                    onPress={async () => {
+                      try {
+                        const res = await deleteTorrent([
+                          torrentData.hashString,
+                        ]);
 
-                      if (res === "fail") {
-                        showToast({
-                          message: `${torrentData.name} was not deleted`,
-                        });
+                        if (res === "fail") {
+                          showToast({
+                            message: `${torrentData.name} was not deleted`,
+                          });
 
-                        setVisibleModal(() => null);
-                      } else {
-                        showToast({ message: `${torrentData.name} deleted` });
+                          setVisibleModal(() => null);
+                        } else {
+                          showToast({ message: `${torrentData.name} deleted` });
+                        }
+                      } catch {
+                        showToast({ message: "GENERIC_ERROR_MESSAGE" });
                       }
-                    } catch {
-                      showToast({ message: "GENERIC_ERROR_MESSAGE" });
-                    }
-                  }}
-                  title="Delete"
-                />
+                    }}
+                    title="Delete"
+                  />
+                </View>
               </View>
             </View>
           </Modal>
@@ -220,47 +246,6 @@ type ProgressBarProps = {
     | "verifying";
   totalSize: number;
 };
-
-// const ProgressBar = ({
-//   progress,
-//   rateDownload,
-//   status,
-// }: {
-//   progress: number;
-//   rateDownload: number;
-//   status?:
-//     | "downloading"
-//     | "other"
-//     | "queued"
-//     | "queued_seed"
-//     | "queued_verify"
-//     | "seeding"
-//     | "stopped"
-//     | "verifying";
-// }) => {
-//   return (
-//     <View
-//       style={{
-//         backgroundColor:
-//           status === "downloading"
-//             ? "green"
-//             : status === "seeding"
-//             ? "blue"
-//             : status === "stopped"
-//             ? "grey"
-//             : "orange",
-//         borderRadius: 5,
-//         height: 20,
-//         justifyContent: "center",
-//         width: `${progress}%`,
-//       }}
-//     >
-//       <Text style={{ color: "white", fontSize: 12, marginLeft: 9 }}>
-//         {progress}% @ {rateDownload}
-//       </Text>
-//     </View>
-//   );
-// };
 
 const ProgressBar = ({
   downloadedEver,
