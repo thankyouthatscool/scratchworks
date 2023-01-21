@@ -98,9 +98,11 @@ const getAllTorrents = publicProcedure
         method: "torrent-get",
         methodArguments: {
           fields: [
+            "downloadedEver",
             "hashString",
             "id",
             "name",
+            "percentComplete",
             "percentDone",
             "rateDownload",
             "status",
@@ -126,51 +128,71 @@ const getAllTorrents = publicProcedure
 const pauseTorrent = publicProcedure
   .input(z.string().array().optional())
   .mutation(async ({ input }) => {
-    const sessionId = await getSessionId();
+    try {
+      const sessionId = await getSessionId();
 
-    const option = !input
-      ? { method: "torrent-stop", sessionId }
-      : { method: "torrent-stop", methodArguments: { ids: input }, sessionId };
+      const option = !input
+        ? { method: "torrent-stop", sessionId }
+        : {
+            method: "torrent-stop",
+            methodArguments: { ids: input },
+            sessionId,
+          };
 
-    const res = await performRequest(option);
+      const res = await performRequest(option);
 
-    const parsedResult: { result: string } = JSON.parse(res);
+      const parsedResult: { result: string } = JSON.parse(res);
 
-    return parsedResult.result;
+      return parsedResult.result;
+    } catch {
+      return "fail";
+    }
   });
 
 const resumeTorrent = publicProcedure
   .input(z.string().array().optional())
   .mutation(async ({ input }) => {
-    const sessionId = await getSessionId();
+    try {
+      const sessionId = await getSessionId();
 
-    const option = !input
-      ? { method: "torrent-start", sessionId }
-      : { method: "torrent-start", methodArguments: { ids: input }, sessionId };
+      const option = !input
+        ? { method: "torrent-start", sessionId }
+        : {
+            method: "torrent-start",
+            methodArguments: { ids: input },
+            sessionId,
+          };
 
-    const res = await performRequest(option);
+      const res = await performRequest(option);
 
-    const parsedResult: { result: string } = JSON.parse(res);
+      const parsedResult: { result: string } = JSON.parse(res);
 
-    return parsedResult.result;
+      return parsedResult.result;
+    } catch {
+      return "fail";
+    }
   });
 
 const deleteTorrent = publicProcedure
   .input(z.string().array().optional())
   .mutation(async ({ input }) => {
-    const sessionId = await getSessionId();
+    try {
+      const sessionId = await getSessionId();
 
-    const options = {
-      method: "torrent-remove",
-      sessionId,
-      ...(!!input && { methodArguments: { ids: input } }),
-    };
+      const options = {
+        method: "torrent-remove",
+        sessionId,
+        ...(!!input && { methodArguments: { ids: input } }),
+      };
 
-    const res = await performRequest(options);
+      const res = await performRequest(options);
 
-    const parsedResult: { result: string } = JSON.parse(res);
+      const parsedResult: { result: string } = JSON.parse(res);
 
-    return parsedResult.result;
+      return parsedResult.result;
+    } catch {
+      return "fail";
+    }
   });
 
 const cleanDownloadsDir = publicProcedure

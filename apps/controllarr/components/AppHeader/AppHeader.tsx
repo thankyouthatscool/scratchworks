@@ -1,8 +1,9 @@
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { ButtonBase } from "@scratchworks/comp-lib";
-import { View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 
 import { useAppDispatch, useAppSelector } from "@hooks";
-import { setTorrents } from "@store";
+import { setBottomSheetState, setTorrents } from "@store";
 import { trpc } from "@utils/trpc";
 
 export const AppHeader = () => {
@@ -31,54 +32,26 @@ export const AppHeader = () => {
   return (
     <View
       style={{
+        alignItems: "center",
         flexDirection: "row",
+        justifyContent: "space-between",
         marginHorizontal: 8,
         marginTop: 8,
       }}
     >
-      <ButtonBase
-        disabled={!torrents.length}
-        icon="play-arrow"
-        onPress={async () => {
-          const res = await resumeTorrent();
-
-          if (res === "success") {
-            await handleRefreshTorrents();
-          }
-        }}
-        style={{ marginRight: 8 }}
-        title="Resume All"
-      />
-      <ButtonBase
-        disabled={!torrents.length}
-        icon="pause"
-        onLongPress={() => {
-          console.log("Will be automatically pausing all new torrents.");
-        }}
-        onPress={async () => {
-          const res = await pauseTorrent();
-
-          if (res === "success") {
-            await handleRefreshTorrents();
-          }
-        }}
-        style={{ marginRight: 8 }}
-        title="Pause All"
-      />
-      <ButtonBase
-        disabled={!torrents.length}
-        icon="delete"
-        onPress={async () => {
-          console.log("Deleting all torrents");
-
-          const deleteAllTorrentsRes = await deleteTorrent();
-
-          if (deleteAllTorrentsRes === "success") {
-            await handleRefreshTorrents();
-          }
-        }}
-        title="Delete All"
-      />
+      <Text style={{ fontSize: 16 * 1.5, color: "#4B5563", fontWeight: "500" }}>
+        All Downloads
+      </Text>
+      <Pressable>
+        <MaterialIcons
+          color="#4B5563"
+          name="settings"
+          onPress={() => {
+            dispatch(setBottomSheetState(true));
+          }}
+          size={30}
+        />
+      </Pressable>
     </View>
   );
 };

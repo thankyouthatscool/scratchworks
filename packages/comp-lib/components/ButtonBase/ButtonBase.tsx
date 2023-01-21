@@ -1,9 +1,10 @@
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
-import { FC, ComponentPropsWithoutRef } from "react";
-import React, { Button, Pressable, Text } from "react-native";
+import React, { FC, ComponentPropsWithoutRef } from "react";
+import { Button, Pressable, Text } from "react-native";
 
 interface ButtonBase {
   icon?: "delete" | "pause" | "play-arrow";
+  buttonType?: "danger" | "primary" | "secondary";
   buttonType?: "danger" | "primary" | "secondary";
   title?: string;
 }
