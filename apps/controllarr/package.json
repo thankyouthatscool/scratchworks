@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
+    "build:android:dev": "yarn eas build --profile development --platform android --no-wait",
     "start": "dotenv -e .env expo start"
   },
   "dependencies": {
@@ -36,6 +37,7 @@
     "@babel/core": "^7.12.9",
     "@types/react": "~18.0.14",
     "@types/react-native": "~0.70.6",
+    "eas-cli": "^3.4.0",
     "typescript": "^4.6.3"
   },
   "private": true

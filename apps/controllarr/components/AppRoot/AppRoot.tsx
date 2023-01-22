@@ -119,7 +119,7 @@ export const AppRoot = () => {
     if (!isInitializationComplete) {
       handleInitialLoad();
 
-      const refresh = setInterval(handleFetchTorrentData, 3000);
+      const refresh = setInterval(handleFetchTorrentData, 5000);
 
       return () => {
         clearInterval(refresh);
