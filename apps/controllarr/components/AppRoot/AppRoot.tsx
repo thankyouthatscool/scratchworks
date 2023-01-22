@@ -3,8 +3,8 @@ import BottomSheet, {
 } from "@gorhom/bottom-sheet";
 import Slider from "@react-native-community/slider";
 import { ButtonBase } from "@scratchworks/comp-lib";
-import { useCallback, useEffect, useMemo, useRef } from "react";
-import { ScrollView, Switch, Text, View } from "react-native";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Modal, ScrollView, Switch, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { AppHeader } from "@components/AppHeader";
@@ -18,7 +18,12 @@ import {
   setTorrents,
 } from "@store";
 import { APP_BACKGROUND } from "@theme";
-import { getLocalTorrentData, setLocalTorrentData, trpc } from "@utils";
+import {
+  formatBytes,
+  getLocalTorrentData,
+  setLocalTorrentData,
+  trpc,
+} from "@utils";
 
 export const AppRoot = () => {
   // Hooks
@@ -46,6 +51,11 @@ export const AppRoot = () => {
     torrents,
   } = useAppSelector(({ app }) => app);
 
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState<boolean>(false);
+  const [downloadsDirData, setDownloadsDirData] = useState<
+    { path: string; size: number }[] | null
+  >(null);
+
   // trpc
   const { mutateAsync: getAllTorrents } =
     trpc.controllarr.getAllTorrents.useMutation();
@@ -55,6 +65,9 @@ export const AppRoot = () => {
 
   const { mutateAsync: pauseTorrent } =
     trpc.controllarr.pauseTorrent.useMutation();
+
+  const { mutateAsync: getDownloadsDirData } =
+    trpc.controllarr.getDownloadsDirData.useMutation();
 
   const { mutateAsync: cleanDownloadsDir } =
     trpc.controllarr.cleanDownloadsDir.useMutation();
@@ -162,7 +175,7 @@ export const AppRoot = () => {
         enablePanDownToClose
         enableContentPanningGesture={false}
         handleHeight={animatedHandleHeight}
-        index={-1}
+        index={0}
         onChange={handleSheetChanges}
         ref={bottomSheetRef}
         snapPoints={animatedSnapPoints}
@@ -179,7 +192,6 @@ export const AppRoot = () => {
           elevation: 5,
         }}
         handleStyle={{
-          // backgroundColor: PROGRESS_BAR_BACKGROUND_STOPPED,
           borderTopRightRadius: 10,
           borderTopLeftRadius: 10,
         }}
@@ -254,6 +266,89 @@ export const AppRoot = () => {
               }}
               title="Delete All"
             />
+          </View>
+          <View
+            style={{
+              marginTop: 8,
+            }}
+          >
+            <ButtonBase
+              buttonType="danger"
+              icon="delete"
+              onPress={async () => {
+                const res = await getDownloadsDirData();
+
+                setDownloadsDirData(() => res);
+
+                setIsDeleteModalOpen(() => true);
+              }}
+              title="Clean Downloads"
+            />
+            <Modal
+              animationType="slide"
+              hardwareAccelerated={true}
+              onRequestClose={() => {
+                setIsDeleteModalOpen(() => false);
+              }}
+              transparent={true}
+              visible={isDeleteModalOpen}
+            >
+              <View
+                style={{
+                  borderRadius: 5,
+                  flex: 1,
+                  justifyContent: "center",
+                  margin: 8,
+                }}
+              >
+                <View
+                  style={{
+                    backgroundColor: "white",
+                    borderColor: "red",
+                    borderWidth: 2,
+                    borderRadius: 5,
+                    elevation: 10,
+                    padding: 8,
+                  }}
+                >
+                  <Text
+                    style={{
+                      color: "red",
+                      fontSize: 16 * 1.5,
+                      fontWeight: "500",
+                    }}
+                  >
+                    Delete Downloads -{" "}
+                    {formatBytes(
+                      downloadsDirData?.reduce((acc, val) => acc + val.size, 0)!
+                    )}
+                  </Text>
+                  <ScrollView style={{ maxHeight: 400 }}>
+                    {downloadsDirData?.map((item) => (
+                      <Text key={item.path}>
+                        {item.path} - {formatBytes(item.size)}
+                      </Text>
+                    ))}
+                  </ScrollView>
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      justifyContent: "flex-end",
+                      marginTop: 8,
+                    }}
+                  >
+                    <ButtonBase
+                      onPress={() => {
+                        setIsDeleteModalOpen(() => false);
+                      }}
+                      title="Cancel"
+                      style={{ marginRight: 8 }}
+                    />
+                    <ButtonBase buttonType="danger" title="Delete" />
+                  </View>
+                </View>
+              </View>
+            </Modal>
           </View>
           <View
             style={{

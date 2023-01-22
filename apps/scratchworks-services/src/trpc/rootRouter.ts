@@ -1,5 +1,6 @@
+import glob from "glob-promise";
 import http from "http";
-import { existsSync } from "node:fs";
+import { existsSync, statSync } from "node:fs";
 import { readdir, rm } from "node:fs/promises";
 import path from "node:path";
 import { z } from "zod";
@@ -196,6 +197,22 @@ const deleteTorrent = publicProcedure
     }
   });
 
+// Clean downloads
+const getDownloadsDirData = publicProcedure
+  .input(z.string().optional())
+  .mutation(async () => {
+    const DOWNLOADS_DIR = path.resolve(process.env.DOWNLOADS_DIR!);
+
+    const fileList = await glob("**/*.*", { cwd: DOWNLOADS_DIR });
+
+    const mappedList = fileList.map((file) => ({
+      path: file,
+      size: statSync(path.resolve(DOWNLOADS_DIR, file)).size,
+    }));
+
+    return mappedList;
+  });
+
 const cleanDownloadsDir = publicProcedure
   .input(z.string().optional())
   .mutation(async () => {
@@ -227,6 +244,8 @@ export const controllarrRouter = router({
   pauseTorrent,
   resumeTorrent,
   deleteTorrent,
+  // Clean downloads
+  getDownloadsDirData,
   cleanDownloadsDir,
 });
 

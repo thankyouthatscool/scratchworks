@@ -1,4 +1,4 @@
-import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import MaterialIcon from "@expo/vector-icons/MaterialIcons";
 import React, { FC, ComponentPropsWithoutRef } from "react";
 import { Button, Pressable, Text } from "react-native";
 
@@ -44,7 +44,7 @@ export const ButtonBase: FC<
         })}
       >
         {!!icon && (
-          <MaterialIcons
+          <MaterialIcon
             color={icon === "delete" ? "red" : "black"}
             name={icon}
             size={ICON_SIZE}
@@ -76,6 +76,14 @@ export const ButtonBase: FC<
           ...style,
         })}
       >
+        {!!icon && (
+          <MaterialIcon
+            color="white"
+            name={icon}
+            size={ICON_SIZE}
+            style={{ marginLeft: ICON_NEGATIVE_MARGIN + 4 }}
+          />
+        )}
         <Text style={{ color: "white", fontSize: FONT_SIZE }}>{title}</Text>
       </Pressable>
     );
