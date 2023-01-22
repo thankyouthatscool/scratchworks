@@ -4,7 +4,8 @@ import { Pressable, Text, View } from "react-native";
 
 import { useAppDispatch, useAppSelector } from "@hooks";
 import { setBottomSheetState, setTorrents } from "@store";
-import { trpc } from "@utils/trpc";
+import { APP_HEADER_FONT } from "@theme";
+import { trpc } from "@utils";
 
 export const AppHeader = () => {
   const dispatch = useAppDispatch();
@@ -39,12 +40,18 @@ export const AppHeader = () => {
         marginTop: 8,
       }}
     >
-      <Text style={{ fontSize: 16 * 1.5, color: "#4B5563", fontWeight: "500" }}>
+      <Text
+        style={{
+          fontSize: 16 * 1.5,
+          color: APP_HEADER_FONT,
+          fontWeight: "500",
+        }}
+      >
         All Downloads
       </Text>
       <Pressable>
         <MaterialIcons
-          color="#4B5563"
+          color={APP_HEADER_FONT}
           name="settings"
           onPress={() => {
             dispatch(setBottomSheetState(true));

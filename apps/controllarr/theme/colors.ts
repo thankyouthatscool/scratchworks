@@ -1,0 +1,21 @@
+// Green
+const GREEN_500 = "#22c55e";
+
+// Orange
+const ORANGE_600 = "#ea580c";
+
+// Sky
+const SKY_500 = "#0ea5e9";
+
+// Slate
+const SLATE_100 = "#F1F5F9";
+const SLATE_400 = "#94a3b8";
+const SLATE_600 = "#475569";
+
+export const APP_BACKGROUND = SLATE_100;
+export const APP_HEADER_FONT = SLATE_600;
+export const PROGRESS_BAR_BORDER = SLATE_600;
+export const PROGRESS_BAR_BACKGROUND_DOWNLOADING = GREEN_500;
+export const PROGRESS_BAR_BACKGROUND_SEEDING = SKY_500;
+export const PROGRESS_BAR_BACKGROUND_STOPPED = SLATE_400;
+export const PROGRESS_BAR_BACKGROUND_OTHER = ORANGE_600;

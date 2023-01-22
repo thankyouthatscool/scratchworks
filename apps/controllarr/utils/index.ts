@@ -1,3 +1,5 @@
+export * from "./localStorage";
+
 export * from "./trpc";
 
 export const formatBytes = (bytes: number, decimals = 2) => {

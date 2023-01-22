@@ -62,6 +62,8 @@ export const ButtonBase: FC<
   if (buttonType === "danger") {
     return (
       <Pressable
+        onLongPress={disabled ? null : onLongPress}
+        onPress={disabled ? null : onPress}
         style={({ pressed }) => ({
           alignItems: "center",
           alignSelf: "flex-start",

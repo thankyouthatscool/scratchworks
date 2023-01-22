@@ -15,19 +15,19 @@ import {
   setInitializationState,
   setTorrents,
 } from "@store";
-import { trpc } from "@utils/trpc";
+import {
+  APP_BACKGROUND,
+  APP_HEADER_FONT,
+  PROGRESS_BAR_BACKGROUND_OTHER,
+  PROGRESS_BAR_BACKGROUND_STOPPED,
+} from "@theme";
+import { getLocalTorrentData, setLocalTorrentData, trpc } from "@utils";
 
 export const AppRoot = () => {
+  // Hooks
   const dispatch = useAppDispatch();
 
   const { showToast } = useToast();
-
-  const {
-    isAutoPauseEnabled,
-    isBottomSheetOpen,
-    isInitializationComplete,
-    torrents,
-  } = useAppSelector(({ app }) => app);
 
   const bottomSheetRef = useRef<BottomSheet>(null);
 
@@ -40,6 +40,15 @@ export const AppRoot = () => {
     handleContentLayout,
   } = useBottomSheetDynamicSnapPoints(initialSnapPoints);
 
+  // State
+  const {
+    isAutoPauseEnabled,
+    isBottomSheetOpen,
+    isInitializationComplete,
+    torrents,
+  } = useAppSelector(({ app }) => app);
+
+  // trpc
   const { mutateAsync: getAllTorrents } =
     trpc.controllarr.getAllTorrents.useMutation();
 
@@ -53,13 +62,34 @@ export const AppRoot = () => {
     trpc.controllarr.cleanDownloadsDir.useMutation();
 
   // Handlers
-
   const handleInitialLoad = async () => {
     try {
+      const localTorrentData = await getLocalTorrentData();
+
+      dispatch(setTorrents(localTorrentData));
+
       const res = await getAllTorrents();
+
+      await setLocalTorrentData(res);
 
       dispatch(setTorrents(res));
     } catch {
+      await setLocalTorrentData([]);
+
+      dispatch(setTorrents([]));
+    }
+  };
+
+  const handleFetchTorrentData = async () => {
+    try {
+      const res = await getAllTorrents();
+
+      await setLocalTorrentData(res);
+
+      dispatch(setTorrents(res));
+    } catch {
+      await setLocalTorrentData([]);
+
       dispatch(setTorrents([]));
     }
   };
@@ -84,13 +114,12 @@ export const AppRoot = () => {
     }
   }, []);
 
-  // Side Effects
-
+  // Effects
   useEffect(() => {
     if (!isInitializationComplete) {
       handleInitialLoad();
 
-      const refresh = setInterval(handleInitialLoad, 1000);
+      const refresh = setInterval(handleFetchTorrentData, 3000);
 
       return () => {
         clearInterval(refresh);
@@ -115,7 +144,7 @@ export const AppRoot = () => {
   }, [isAutoPauseEnabled, torrents]);
 
   return (
-    <SafeAreaView style={{ height: "100%", backgroundColor: "#F1F5F9" }}>
+    <SafeAreaView style={{ height: "100%", backgroundColor: APP_BACKGROUND }}>
       <AppHeader />
       <ScrollView
         overScrollMode="never"
@@ -139,11 +168,40 @@ export const AppRoot = () => {
         onChange={handleSheetChanges}
         ref={bottomSheetRef}
         snapPoints={animatedSnapPoints}
+        backgroundStyle={{
+          backgroundColor: "white",
+          shadowColor: "#000",
+          shadowOffset: {
+            width: 0,
+            height: 2,
+          },
+          shadowOpacity: 0.25,
+          shadowRadius: 3.84,
+
+          elevation: 5,
+        }}
+        handleStyle={{
+          // backgroundColor: PROGRESS_BAR_BACKGROUND_STOPPED,
+          borderTopRightRadius: 10,
+          borderTopLeftRadius: 10,
+        }}
+        style={{
+          backgroundColor: "white",
+          shadowColor: "#000",
+          shadowOffset: {
+            width: 0,
+            height: 12,
+          },
+          shadowOpacity: 0.58,
+          shadowRadius: 16.0,
+
+          elevation: 24,
+          borderRadius: 15,
+        }}
       >
         <View
           onLayout={handleContentLayout}
           style={{
-            backgroundColor: "#F1F5F9",
             flex: 1,
             padding: 8,
           }}

@@ -1,10 +1,32 @@
-import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import type { Torrent } from "@scratchworks/scratchworks-services";
-import { FC, ComponentPropsWithoutRef, useState, useEffect } from "react";
-import { Modal, Pressable, Text, View } from "react-native";
+import * as Haptics from "expo-haptics";
+import React, {
+  FC,
+  ComponentPropsWithoutRef,
+  useState,
+  useEffect,
+  useRef,
+} from "react";
+import { Dimensions, Modal, Pressable, Text, View } from "react-native";
+import { LineChart } from "react-native-chart-kit";
+import {
+  HandlerStateChangeEvent,
+  State,
+  TapGestureHandler,
+  TapGestureHandlerEventPayload,
+  LongPressGestureHandler,
+  LongPressGestureHandlerEventPayload,
+} from "react-native-gesture-handler";
 
 import { useAppDispatch, useToast } from "@hooks";
 import { setTorrents } from "@store";
+import {
+  PROGRESS_BAR_BACKGROUND_DOWNLOADING,
+  PROGRESS_BAR_BACKGROUND_OTHER,
+  PROGRESS_BAR_BACKGROUND_SEEDING,
+  PROGRESS_BAR_BACKGROUND_STOPPED,
+  PROGRESS_BAR_BORDER,
+} from "@theme";
 import { formatBytes, trpc } from "@utils";
 import { ButtonBase } from "@/../../packages/comp-lib";
 
@@ -42,9 +64,10 @@ export const TorrentCard: FC<
   const { showToast } = useToast();
 
   // State
-  const [visibleModal, setVisibleModal] = useState<string | null>(null);
-
   const [historicTorrentData, setHistoricTorrentData] = useState<Torrent[]>([]);
+  const [isBlockingOperationInProgress, setIsBlockingOperationInProgress] =
+    useState<boolean>(false);
+  const [visibleModal, setVisibleModal] = useState<string | null>(null);
 
   // trpc
   const { mutateAsync: getAllTorrents } =
@@ -66,117 +89,160 @@ export const TorrentCard: FC<
     dispatch(setTorrents(res));
   };
 
+  const doubleTapRef = useRef(null);
+
+  const onSingleTapEvent = (
+    event: HandlerStateChangeEvent<TapGestureHandlerEventPayload>
+  ) => {
+    if (event.nativeEvent.state === State.ACTIVE) {
+      console.log("single tap");
+    }
+  };
+
+  const onDoubleTapEvent = async (
+    event: HandlerStateChangeEvent<TapGestureHandlerEventPayload>
+  ) => {
+    if (event.nativeEvent.state === State.ACTIVE) {
+      if (torrentData.status === 4) {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+
+        try {
+          const res = await pauseTorrent([torrentData.hashString]);
+
+          if (res === "success") {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+
+            return showToast({
+              message: `${torrentData.name} download stopped`,
+            });
+          } else {
+            return showToast({
+              message: `Failed to stop ${torrentData.name}`,
+            });
+          }
+        } catch {
+          return showToast({ message: "GENERIC_ERROR_MESSAGE" });
+        }
+      }
+
+      if (torrentData.status === 6) {
+        try {
+          const res = await pauseTorrent([torrentData.hashString]);
+
+          if (res === "success") {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+
+            showToast({ message: `${torrentData.name} upload stopped` });
+          } else {
+            showToast({ message: `Failed to stop ${torrentData.name}` });
+          }
+        } catch {
+          return showToast({ message: "GENERIC_ERROR_MESSAGE" });
+        }
+      }
+
+      if (torrentData.status === 0) {
+        try {
+          const res = await resumeTorrent([torrentData.hashString]);
+
+          if (res === "success") {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+
+            return showToast({ message: `${torrentData.name} resumed` });
+          } else {
+            return showToast({
+              message: `Failed to resume ${torrentData.name}`,
+            });
+          }
+        } catch {
+          return showToast({ message: "GENERIC_ERROR_MESSAGE" });
+        }
+      }
+    }
+  };
+
+  const onLongPress = (
+    event: HandlerStateChangeEvent<LongPressGestureHandlerEventPayload>
+  ) => {
+    if (event.nativeEvent.state === State.ACTIVE) {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+
+      setVisibleModal(() => torrentData.hashString);
+    }
+  };
+
   // Effects
   useEffect(() => {
     setHistoricTorrentData((htd) => [...htd.slice(-19), torrentData]);
   }, [torrentData]);
 
   return (
-    <Pressable
-      style={{
-        backgroundColor: "white",
-        borderRadius: 5,
-        padding: 8,
-        marginBottom: 8,
-      }}
-    >
-      <Text>{torrentData.name}</Text>
-      <View style={{ alignItems: "center", flexDirection: "row" }}>
-        <Pressable
-          onPress={async () => {
-            if (torrentData.status === 0) {
-              try {
-                const res = await resumeTorrent([torrentData.hashString]);
-
-                if (res === "fail") {
-                  showToast({ message: "Could not resume torrent" });
-                } else {
-                  showToast({ message: `${torrentData.name} resumed` });
-                }
-              } catch {
-                showToast({ message: "GENERIC_ERROR_MESSAGE" });
-              }
-            } else {
-              try {
-                const res = await pauseTorrent([torrentData.hashString]);
-
-                if (res === "fail") {
-                  showToast({ message: "Could not pause Torrent" });
-                } else {
-                  showToast({ message: `${torrentData.name} paused` });
-                }
-              } catch {
-                showToast({ message: "GENERIC_ERROR_MESSAGE" });
-              }
-            }
-          }}
+    <LongPressGestureHandler onHandlerStateChange={onLongPress}>
+      <TapGestureHandler
+        onHandlerStateChange={onSingleTapEvent}
+        waitFor={doubleTapRef}
+      >
+        <TapGestureHandler
+          numberOfTaps={2}
+          onHandlerStateChange={onDoubleTapEvent}
+          ref={doubleTapRef}
         >
-          <MaterialIcons
-            name={
-              torrentStateLookup(torrentData.status) === "downloading" ||
-              torrentStateLookup(torrentData.status) === "seeding"
-                ? "pause"
-                : "play-arrow"
-            }
-            size={30}
+          <View
             style={{
-              marginLeft:
-                torrentData.status === 4 || torrentData.status === 6 ? -5 : -6,
+              backgroundColor: "white",
+              borderRadius: 5,
+              padding: 8,
+              marginBottom: 8,
             }}
-          />
-        </Pressable>
-        <View style={{ flex: 1 }}>
-          <ProgressBar
-            downloadedEver={torrentData.downloadedEver}
-            progress={torrentData.percentDone * 100}
-            rateDownload={torrentData.rateDownload}
-            status={torrentStateLookup(torrentData.status)}
-            totalSize={torrentData.totalSize}
-          />
-        </View>
-        <Pressable
-          onPress={() => {
-            setVisibleModal(() => torrentData.hashString);
-          }}
-        >
-          <MaterialIcons color="red" name="delete" size={30} />
-          <Modal
-            animationType="fade"
-            hardwareAccelerated={true}
-            onRequestClose={() => {
-              setVisibleModal(() => null);
-            }}
-            transparent={true}
-            visible={visibleModal === torrentData.hashString}
           >
-            <View
-              style={{
-                borderRadius: 5,
-                flex: 1,
-                justifyContent: "center",
-                margin: 8,
-              }}
-            >
-              <View
-                style={{
-                  backgroundColor: "white",
-                  borderColor: "red",
-                  borderWidth: 2,
-                  borderRadius: 5,
-                  elevation: 10,
-                  padding: 8,
+            <Text style={{ fontWeight: "500" }}>{torrentData.name}</Text>
+            <View style={{ alignItems: "center", flexDirection: "row" }}>
+              {/* <Pressable
+                onPress={async () => {
+                  if (torrentData.status === 0) {
+                    try {
+                      const res = await resumeTorrent([torrentData.hashString]);
+
+                      if (res === "fail") {
+                        showToast({ message: "Could not resume torrent" });
+                      } else {
+                        showToast({ message: `${torrentData.name} resumed` });
+                      }
+                    } catch {
+                      showToast({ message: "GENERIC_ERROR_MESSAGE" });
+                    }
+                  } else {
+                    try {
+                      const res = await pauseTorrent([torrentData.hashString]);
+
+                      if (res === "fail") {
+                        showToast({ message: "Could not pause Torrent" });
+                      } else {
+                        showToast({ message: `${torrentData.name} paused` });
+                      }
+                    } catch {
+                      showToast({ message: "GENERIC_ERROR_MESSAGE" });
+                    }
+                  }
                 }}
               >
-                <Text
+                <MaterialIcons
+                  name={
+                    torrentStateLookup(torrentData.status) === "downloading" ||
+                    torrentStateLookup(torrentData.status) === "seeding"
+                      ? "pause"
+                      : "play-arrow"
+                  }
+                  size={30}
                   style={{
-                    color: "red",
-                    fontSize: 16 * 1.5,
-                    fontWeight: "500",
+                    marginLeft:
+                      torrentData.status === 4 || torrentData.status === 6
+                        ? -5
+                        : -6,
                   }}
-                >
-                  Deleting
-                </Text>
-                <Text style={{ marginBottom: 8 }}>{torrentData.name}</Text>
+                />
+              </Pressable> */}
+              <View style={{ flex: 1 }}>
                 <ProgressBar
                   downloadedEver={torrentData.downloadedEver}
                   progress={torrentData.percentDone * 100}
@@ -184,50 +250,140 @@ export const TorrentCard: FC<
                   status={torrentStateLookup(torrentData.status)}
                   totalSize={torrentData.totalSize}
                 />
+              </View>
+              <Modal
+                animationType="fade"
+                hardwareAccelerated={true}
+                onRequestClose={() => {
+                  setVisibleModal(() => null);
+                }}
+                transparent={true}
+                visible={visibleModal === torrentData.hashString}
+              >
                 <View
                   style={{
-                    alignSelf: "flex-end",
-                    flexDirection: "row",
-                    marginTop: 8,
+                    borderRadius: 5,
+                    flex: 1,
+                    justifyContent: "center",
+                    margin: 8,
                   }}
                 >
-                  <ButtonBase
-                    onPress={() => {
-                      setVisibleModal(() => null);
+                  <View
+                    style={{
+                      backgroundColor: "white",
+                      borderColor: "red",
+                      borderWidth: 2,
+                      borderRadius: 5,
+                      elevation: 10,
+                      padding: 8,
                     }}
-                    style={{ marginRight: 8 }}
-                    title="Cancel"
-                  />
-                  <ButtonBase
-                    buttonType="danger"
-                    onPress={async () => {
-                      try {
-                        const res = await deleteTorrent([
-                          torrentData.hashString,
-                        ]);
+                  >
+                    <Text
+                      style={{
+                        color: "red",
+                        fontSize: 16 * 1.5,
+                        fontWeight: "500",
+                      }}
+                    >
+                      Deleting
+                    </Text>
+                    <Text style={{ marginBottom: 8, fontWeight: "500" }}>
+                      {torrentData.name}
+                    </Text>
+                    <ProgressBar
+                      downloadedEver={torrentData.downloadedEver}
+                      progress={torrentData.percentDone * 100}
+                      rateDownload={torrentData.rateDownload}
+                      status={torrentStateLookup(torrentData.status)}
+                      totalSize={torrentData.totalSize}
+                    />
+                    {torrentData.status === 4 && (
+                      <SpeedChart
+                        historicTorrentData={historicTorrentData}
+                        rate="download"
+                      />
+                    )}
+                    {torrentData.status === 6 &&
+                      !historicTorrentData.every(
+                        (torrent) => torrent.rateUpload === 0
+                      ) && (
+                        <SpeedChart
+                          historicTorrentData={historicTorrentData}
+                          rate="upload"
+                        />
+                      )}
 
-                        if (res === "fail") {
-                          showToast({
-                            message: `${torrentData.name} was not deleted`,
-                          });
-
+                    <View
+                      style={{
+                        alignSelf: "flex-end",
+                        flexDirection: "row",
+                        marginTop: 8,
+                      }}
+                    >
+                      <ButtonBase
+                        disabled={isBlockingOperationInProgress}
+                        onPress={() => {
                           setVisibleModal(() => null);
-                        } else {
-                          showToast({ message: `${torrentData.name} deleted` });
-                        }
-                      } catch {
-                        showToast({ message: "GENERIC_ERROR_MESSAGE" });
-                      }
-                    }}
-                    title="Delete"
-                  />
+                        }}
+                        style={{ marginRight: 8 }}
+                        title="Cancel"
+                      />
+                      <ButtonBase
+                        buttonType="danger"
+                        disabled={isBlockingOperationInProgress}
+                        onPress={async () => {
+                          setIsBlockingOperationInProgress(() => true);
+
+                          try {
+                            const res = await deleteTorrent([
+                              torrentData.hashString,
+                            ]);
+
+                            if (res === "fail") {
+                              showToast({
+                                message: `${torrentData.name} was not deleted`,
+                              });
+                            } else {
+                              await handleRefreshTorrents();
+
+                              showToast({
+                                message: `${torrentData.name} deleted`,
+                              });
+
+                              setVisibleModal(() => null);
+                            }
+                          } catch {
+                            showToast({ message: "GENERIC_ERROR_MESSAGE" });
+                          }
+
+                          setIsBlockingOperationInProgress(() => false);
+                        }}
+                        title="Delete"
+                      />
+                    </View>
+                  </View>
                 </View>
-              </View>
+              </Modal>
             </View>
-          </Modal>
-        </Pressable>
-      </View>
-    </Pressable>
+            {torrentData.status === 4 && (
+              <SpeedChart
+                historicTorrentData={historicTorrentData}
+                rate="download"
+              />
+            )}
+            {torrentData.status === 6 &&
+              !historicTorrentData.every(
+                (torrent) => torrent.rateUpload === 0
+              ) && (
+                <SpeedChart
+                  historicTorrentData={historicTorrentData}
+                  rate="upload"
+                />
+              )}
+          </View>
+        </TapGestureHandler>
+      </TapGestureHandler>
+    </LongPressGestureHandler>
   );
 };
 
@@ -258,6 +414,7 @@ const ProgressBar = ({
     <View
       style={{
         alignItems: "center",
+        borderColor: PROGRESS_BAR_BORDER,
         borderRadius: 5,
         borderWidth: 2,
         height: 25,
@@ -269,12 +426,12 @@ const ProgressBar = ({
           alignSelf: "flex-start",
           backgroundColor:
             status === "downloading"
-              ? "green"
+              ? PROGRESS_BAR_BACKGROUND_DOWNLOADING
               : status === "seeding"
-              ? "blue"
+              ? PROGRESS_BAR_BACKGROUND_SEEDING
               : status === "stopped"
-              ? "grey"
-              : "orange",
+              ? PROGRESS_BAR_BACKGROUND_STOPPED
+              : PROGRESS_BAR_BACKGROUND_OTHER,
           borderRadius: 3,
           height: "100%",
           position: "absolute",
@@ -291,5 +448,58 @@ const ProgressBar = ({
           : `${formatBytes(downloadedEver)}/${formatBytes(totalSize)}`}
       </Text>
     </View>
+  );
+};
+
+type SpeedChartProps = {
+  historicTorrentData: Torrent[];
+  rate: "download" | "upload";
+};
+
+const SpeedChart = ({ historicTorrentData, rate }: SpeedChartProps) => {
+  const chartConfig = {
+    backgroundGradientFrom: "white",
+    backgroundGradientTo: "white",
+    barPercentage: 0.5,
+    color: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
+    labelColor: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
+  };
+
+  const data = {
+    labels: [],
+    datasets: [
+      {
+        data: !historicTorrentData?.length
+          ? [0]
+          : historicTorrentData.map((torrent) =>
+              rate === "download" ? torrent.rateDownload : torrent.rateUpload
+            ),
+        color: () =>
+          rate === "download"
+            ? PROGRESS_BAR_BACKGROUND_DOWNLOADING
+            : PROGRESS_BAR_BACKGROUND_SEEDING,
+        strokeWidth: 4,
+      },
+    ],
+  };
+
+  return (
+    <LineChart
+      bezier
+      chartConfig={chartConfig}
+      data={data}
+      height={75}
+      width={Dimensions.get("window").width - 32}
+      formatYLabel={(value) => formatBytes(parseInt(value)).toString()}
+      withVerticalLabels={false}
+      withHorizontalLabels={false}
+      fromZero={true}
+      withDots={false}
+      withVerticalLines={false}
+      withHorizontalLines={false}
+      style={{
+        paddingRight: 8,
+      }}
+    />
   );
 };

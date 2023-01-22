@@ -3,16 +3,14 @@ import { httpBatchLink } from "@trpc/client";
 import Constants from "expo-constants";
 import { StatusBar } from "expo-status-bar";
 import { useState } from "react";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { RootSiblingParent } from "react-native-root-siblings";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { Provider as ReduxProvider } from "react-redux";
 
-import { GestureHandlerRootView } from "react-native-gesture-handler";
-
-import { RootSiblingParent } from "react-native-root-siblings";
-
 import { AppRoot } from "@components/AppRoot";
 import { store } from "@store";
-import { trpc } from "@utils/trpc";
+import { trpc } from "@utils";
 
 const API_URL: string = Constants.expoConfig?.extra?.API_URL;
 const CF_ACCESS_CLIENT_ID: string =
@@ -55,3 +53,10 @@ export const App = () => {
     </ReduxProvider>
   );
 };
+
+// TODO: Upload chart.
+// TODO: Proper color codes and variables.
+// TODO: Long tap and double tap for pause and delete.
+// TODO: Haptics for various actions.
+// TODO: Store the refresh rate time in some sort of a variable.
+// TODO: Only show the upload chart if change

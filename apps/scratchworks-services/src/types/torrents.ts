@@ -6,6 +6,7 @@ export type Torrent = {
   percentComplete: number;
   percentDone: number;
   rateDownload: number;
+  rateUpload: number;
   status: number;
   totalSize: number;
 };

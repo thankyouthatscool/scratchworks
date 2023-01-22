@@ -105,6 +105,7 @@ const getAllTorrents = publicProcedure
             "percentComplete",
             "percentDone",
             "rateDownload",
+            "rateUpload",
             "status",
             "totalSize",
           ],
