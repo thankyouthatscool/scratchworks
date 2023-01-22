@@ -1,6 +1,7 @@
 import BottomSheet, {
   useBottomSheetDynamicSnapPoints,
 } from "@gorhom/bottom-sheet";
+import Slider from "@react-native-community/slider";
 import { ButtonBase } from "@scratchworks/comp-lib";
 import { useCallback, useEffect, useMemo, useRef } from "react";
 import { ScrollView, Switch, Text, View } from "react-native";
@@ -12,15 +13,11 @@ import { useAppDispatch, useAppSelector, useToast } from "@hooks";
 import {
   setAutoPause,
   setBottomSheetState,
+  setFetchInterval,
   setInitializationState,
   setTorrents,
 } from "@store";
-import {
-  APP_BACKGROUND,
-  APP_HEADER_FONT,
-  PROGRESS_BAR_BACKGROUND_OTHER,
-  PROGRESS_BAR_BACKGROUND_STOPPED,
-} from "@theme";
+import { APP_BACKGROUND } from "@theme";
 import { getLocalTorrentData, setLocalTorrentData, trpc } from "@utils";
 
 export const AppRoot = () => {
@@ -42,6 +39,7 @@ export const AppRoot = () => {
 
   // State
   const {
+    fetchInterval,
     isAutoPauseEnabled,
     isBottomSheetOpen,
     isInitializationComplete,
@@ -119,15 +117,15 @@ export const AppRoot = () => {
     if (!isInitializationComplete) {
       handleInitialLoad();
 
-      const refresh = setInterval(handleFetchTorrentData, 5000);
-
-      return () => {
-        clearInterval(refresh);
-      };
+      dispatch(setInitializationState(true));
     }
 
-    dispatch(setInitializationState(true));
-  }, [isInitializationComplete]);
+    const refresh = setInterval(handleFetchTorrentData, fetchInterval * 1000);
+
+    return () => {
+      clearInterval(refresh);
+    };
+  }, [fetchInterval, isInitializationComplete]);
 
   useEffect(() => {
     if (!!isBottomSheetOpen) {
@@ -159,10 +157,10 @@ export const AppRoot = () => {
           })}
         </View>
       </ScrollView>
-
       <BottomSheet
         contentHeight={animatedContentHeight}
         enablePanDownToClose
+        enableContentPanningGesture={false}
         handleHeight={animatedHandleHeight}
         index={-1}
         onChange={handleSheetChanges}
@@ -270,6 +268,19 @@ export const AppRoot = () => {
                 dispatch(setAutoPause(e));
               }}
               value={isAutoPauseEnabled}
+            />
+          </View>
+          <View style={{ flexDirection: "row" }}>
+            <Text>Refresh Interval: {fetchInterval}s</Text>
+            <Slider
+              minimumValue={1}
+              maximumValue={10}
+              onValueChange={(e) => {
+                dispatch(setFetchInterval(e));
+              }}
+              step={1}
+              style={{ flex: 1 }}
+              value={fetchInterval}
             />
           </View>
         </View>

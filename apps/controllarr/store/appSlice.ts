@@ -2,6 +2,7 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import type { Torrent } from "@scratchworks/scratchworks-services";
 
 type AppState = {
+  fetchInterval: number;
   isAutoPauseEnabled: boolean;
   isBottomSheetOpen: boolean;
   isInitializationComplete: boolean;
@@ -9,6 +10,7 @@ type AppState = {
 };
 
 const initialState: AppState = {
+  fetchInterval: 3,
   isAutoPauseEnabled: false,
   isBottomSheetOpen: false,
   isInitializationComplete: false,
@@ -25,6 +27,9 @@ export const appSlice = createSlice({
     setBottomSheetState: (state, { payload }: PayloadAction<boolean>) => {
       state.isBottomSheetOpen = payload;
     },
+    setFetchInterval: (state, { payload }) => {
+      state.fetchInterval = payload;
+    },
     setInitializationState: (state, { payload }: PayloadAction<boolean>) => {
       state.isInitializationComplete = payload;
     },
@@ -37,6 +42,7 @@ export const appSlice = createSlice({
 export const {
   setAutoPause,
   setBottomSheetState,
+  setFetchInterval,
   setInitializationState,
   setTorrents,
 } = appSlice.actions;
