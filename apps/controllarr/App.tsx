@@ -60,3 +60,5 @@ export const App = () => {
 // TODO: Haptics for various actions.
 // TODO: Store the refresh rate time in some sort of a variable.
 // TODO: Only show the upload chart if change
+// TODO: Auto pause stored on the backend.
+// TODO: Pass context/middleware that show whether auto pause is enabled.

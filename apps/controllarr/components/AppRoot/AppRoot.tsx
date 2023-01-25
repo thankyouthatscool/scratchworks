@@ -17,7 +17,7 @@ import {
   setInitializationState,
   setTorrents,
 } from "@store";
-import { APP_BACKGROUND } from "@theme";
+import { APP_BACKGROUND, PROGRESS_BAR_BACKGROUND_STOPPED } from "@theme";
 import {
   formatBytes,
   getLocalTorrentData,
@@ -175,7 +175,7 @@ export const AppRoot = () => {
         enablePanDownToClose
         enableContentPanningGesture={false}
         handleHeight={animatedHandleHeight}
-        index={0}
+        index={-1}
         onChange={handleSheetChanges}
         ref={bottomSheetRef}
         snapPoints={animatedSnapPoints}
@@ -192,6 +192,7 @@ export const AppRoot = () => {
           elevation: 5,
         }}
         handleStyle={{
+          backgroundColor: PROGRESS_BAR_BACKGROUND_STOPPED,
           borderTopRightRadius: 10,
           borderTopLeftRadius: 10,
         }}
