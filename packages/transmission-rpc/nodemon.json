@@ -1,0 +1,6 @@
+{
+  "exec": "ts-node --transpile-only --files ./index.ts",
+  "ext": ".ts",
+  "verbose": true,
+  "watch": ["./"]
+}
