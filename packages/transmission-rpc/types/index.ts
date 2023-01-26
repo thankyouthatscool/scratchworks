@@ -1,3 +1,5 @@
+import { TORRENT_DATA_REQUEST_FIELDS } from "../constants";
+
 export interface ConnectionSettings {
   hostname: string;
   protocol: string;
@@ -24,6 +26,7 @@ export type Torrent = {
   totalSize?: number;
   trackers: Tracker[];
   trackerStats: TrackerStat[];
+  wanted: number[];
 };
 
 export type Peer = {
@@ -70,4 +73,26 @@ export type TrackerStat = {
   hasScraped: boolean;
   host: string;
   id: number;
+  isBackup: boolean;
+  lastAnnouncePeerCount: number;
+  lastAnnounceResult: string;
+  lastAnnounceStartTime: number;
+  lastAnnounceSucceeded: boolean;
+  lastAnnounceTime: number;
+  lastAnnounceTimedOut: boolean;
+  lastScrapeResult: string;
+  lastScrapeStartTime: number;
+  lastScrapeSucceeded: boolean;
+  lastScrapeTime: number;
+  lastScrapedTimeOut: boolean;
+  leecherCount: number;
+  nextAnnounceTime: number;
+  nextScrapeTime: number;
+  scrapeState: number;
+  scrape: string;
+  seederCount: number;
+  sitename: string;
+  tier: number;
 };
+
+export type TorrentDataField = typeof TORRENT_DATA_REQUEST_FIELDS[number];
