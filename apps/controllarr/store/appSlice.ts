@@ -3,6 +3,8 @@ import type { Torrent } from "@scratchworks/scratchworks-services";
 
 type AppState = {
   fetchInterval: number;
+  footerHeight: number;
+  headerHeight: number;
   isAutoPauseEnabled: boolean;
   isBottomSheetOpen: boolean;
   isInitializationComplete: boolean;
@@ -11,6 +13,8 @@ type AppState = {
 
 const initialState: AppState = {
   fetchInterval: 3,
+  footerHeight: 35,
+  headerHeight: 49,
   isAutoPauseEnabled: false,
   isBottomSheetOpen: false,
   isInitializationComplete: false,

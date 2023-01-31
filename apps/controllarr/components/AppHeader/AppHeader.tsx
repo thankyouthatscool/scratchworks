@@ -1,64 +1,40 @@
-import MaterialIcons from "@expo/vector-icons/MaterialIcons";
-import { ButtonBase } from "@scratchworks/comp-lib";
-import { Pressable, Text, View } from "react-native";
+import { FC, useEffect, useRef } from "react";
+import { Animated, Text } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { useAppDispatch, useAppSelector } from "@hooks";
-import { setBottomSheetState, setTorrents } from "@store";
-import { APP_HEADER_FONT } from "@theme";
-import { trpc } from "@utils";
+import { useAppSelector } from "@hooks";
 
-export const AppHeader = () => {
-  const dispatch = useAppDispatch();
+export const AppHeader: FC<{ movementDir: boolean }> = ({ movementDir }) => {
+  const { headerHeight } = useAppSelector(({ app }) => app);
 
-  const { torrents } = useAppSelector(({ app }) => app);
+  const { top } = useSafeAreaInsets();
 
-  const { mutateAsync: getAllTorrents } =
-    trpc.controllarr.getAllTorrents.useMutation();
+  const headerTranslateAnim = useRef(new Animated.Value(top)).current;
 
-  const { mutateAsync: pauseTorrent } =
-    trpc.controllarr.pauseTorrent.useMutation();
-
-  const { mutateAsync: resumeTorrent } =
-    trpc.controllarr.resumeTorrent.useMutation();
-
-  const { mutateAsync: deleteTorrent } =
-    trpc.controllarr.deleteTorrent.useMutation();
-
-  const handleRefreshTorrents = async () => {
-    const res = await getAllTorrents();
-
-    dispatch(setTorrents(res));
-  };
+  useEffect(() => {
+    Animated.spring(headerTranslateAnim, {
+      bounciness: 10,
+      speed: 10,
+      toValue: !!movementDir ? top - headerHeight : top,
+      useNativeDriver: true,
+    }).start();
+  }, [headerHeight, movementDir, top, headerTranslateAnim]);
 
   return (
-    <View
+    <Animated.View
       style={{
-        alignItems: "center",
-        flexDirection: "row",
-        justifyContent: "space-between",
-        marginHorizontal: 8,
-        marginTop: 8,
+        backgroundColor: "white",
+        borderBottomLeftRadius: 5,
+        borderBottomRightRadius: 5,
+        elevation: 2,
+        padding: 8,
+        position: "absolute",
+        transform: [{ translateY: headerTranslateAnim }],
+        width: "100%",
+        zIndex: 2,
       }}
     >
-      <Text
-        style={{
-          fontSize: 16 * 1.5,
-          color: APP_HEADER_FONT,
-          fontWeight: "500",
-        }}
-      >
-        All Downloads
-      </Text>
-      <Pressable>
-        <MaterialIcons
-          color={APP_HEADER_FONT}
-          name="settings"
-          onPress={() => {
-            dispatch(setBottomSheetState(true));
-          }}
-          size={30}
-        />
-      </Pressable>
-    </View>
+      <Text style={{ fontSize: 16 * 1.5 }}>All Torrents</Text>
+    </Animated.View>
   );
 };
