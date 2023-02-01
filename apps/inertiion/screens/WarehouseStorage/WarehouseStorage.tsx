@@ -130,8 +130,16 @@ export const LocationCard = ({ location }: { location: string }) => {
 
         dispatch(setSelectedWarehouseStorageLocation(location));
       }}
-      onLongPress={() => {
-        console.log("will clear the whole dang pallet");
+      onLongPress={async () => {
+        await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+
+        const res = await removePallet(location);
+
+        dispatch(setWarehouseStorageLocations(res));
+
+        setLSWarehouseStorageLocations(res);
+
+        setIsPressed(() => false);
       }}
       style={{
         backgroundColor: "white",
