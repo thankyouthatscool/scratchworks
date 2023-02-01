@@ -2,7 +2,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import type { WarehouseStorageLocation } from "@scratchworks/inertiion-services";
 
 export const getLSWarehouseStorageLocations = async () => {
-  //   await AsyncStorage.removeItem("warehouseStorageLocations");
+  // await AsyncStorage.removeItem("warehouseStorageLocations");
 
   const resString = await AsyncStorage.getItem("warehouseStorageLocations");
 
@@ -52,7 +52,10 @@ type PalletData = {
   Initials?: string;
 };
 
-export const savePallet = async (palletLocation: string, data: PalletData) => {
+export const savePallet = async (
+  palletLocation: string,
+  data: PalletData[]
+) => {
   const resString = await AsyncStorage.getItem("warehouseStorageLocations");
 
   const warehouseStorageLocations: {
@@ -64,16 +67,11 @@ export const savePallet = async (palletLocation: string, data: PalletData) => {
 
   const s = {
     ...rest,
-    [palletLocation]: [
-      {
-        Location: palletLocation,
-        ...data,
-      },
-    ],
+    [palletLocation]: data.map((item) => ({
+      ...item,
+      Location: palletLocation,
+    })),
   };
-
-  console.log(data);
-  console.log(s);
 
   await setLSWarehouseStorageLocations(s);
 

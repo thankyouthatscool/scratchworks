@@ -47,3 +47,9 @@ const styles = StyleSheet.create({
     backgroundColor: "#F8FAFC",
   },
 });
+
+// TODO: Haptics
+// TODO: Better generic message for toast
+// TODO: Pallet item into a separate component that can use Pressable on.
+// TODO:
+// TODO:
