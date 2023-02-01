@@ -1,4 +1,5 @@
 import { WarehouseStorageLocation } from "@scratchworks/inertiion-services";
+import * as Haptics from "expo-haptics";
 import { useEffect, useState } from "react";
 import {
   BackHandler,
@@ -108,43 +109,14 @@ export const WarehouseStorageLocationComponent = () => {
       {!!formData[0]?.Description &&
         formData.map((loc, index) => {
           return (
-            <Pressable
+            <PalletItemCard
+              index={index}
               key={loc.Description}
-              onPress={() => {
-                setFormMode(() => "edit");
-
-                setItemToEdit(() => ({
-                  Description: loc.Description,
-                  Cartons: loc.Cartons?.toString(),
-                  Pieces: loc.Pieces?.toString(),
-                  Initials: loc.Initials,
-                  Index: index,
-                }));
-              }}
-              onLongPress={() => {
-                setFormData((formData) => [
-                  ...formData.slice(0, index),
-                  ...formData.slice(index + 1),
-                ]);
-              }}
-            >
-              <View
-                style={{
-                  backgroundColor: "white",
-                  borderRadius: 5,
-                  elevation: 2,
-                  flexDirection: "row",
-                  justifyContent: "space-between",
-                  marginTop: 8,
-                  padding: 8,
-                }}
-              >
-                <Text>{loc.Description}</Text>
-                <Text>{loc.Cartons}</Text>
-                <Text>{loc.Pieces}</Text>
-                <Text>{loc.Initials}</Text>
-              </View>
-            </Pressable>
+              loc={loc}
+              setFormData={setFormData}
+              setFormMode={setFormMode}
+              setItemToEdit={setItemToEdit}
+            />
           );
         })}
       <View style={{ marginTop: 8 }}>
@@ -264,5 +236,78 @@ export const WarehouseStorageLocationComponent = () => {
         />
       </View>
     </View>
+  );
+};
+
+interface PalletItemCardProps {
+  index: number;
+  loc: WarehouseStorageLocation;
+  setFormMode: React.Dispatch<React.SetStateAction<"add" | "edit">>;
+  setItemToEdit: React.Dispatch<
+    React.SetStateAction<{
+      Description?: string | undefined;
+      Cartons?: string | undefined;
+      Pieces?: string | undefined;
+      Initials?: string | undefined;
+      Index?: number | undefined;
+    }>
+  >;
+  setFormData: React.Dispatch<React.SetStateAction<WarehouseStorageLocation[]>>;
+}
+
+export const PalletItemCard = ({
+  index,
+  loc,
+  setFormData,
+  setFormMode,
+  setItemToEdit,
+}: PalletItemCardProps) => {
+  const [isPressed, setIsPressed] = useState<boolean>(false);
+
+  return (
+    <Pressable
+      onPressIn={() => {
+        setIsPressed(() => true);
+      }}
+      onPressOut={() => {
+        setIsPressed(() => false);
+      }}
+      onPress={() => {
+        setFormMode(() => "edit");
+
+        setItemToEdit(() => ({
+          Description: loc.Description,
+          Cartons: loc.Cartons?.toString(),
+          Pieces: loc.Pieces?.toString(),
+          Initials: loc.Initials,
+          Index: index,
+        }));
+      }}
+      onLongPress={async () => {
+        await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+
+        setFormData((formData) => [
+          ...formData.slice(0, index),
+          ...formData.slice(index + 1),
+        ]);
+      }}
+    >
+      <View
+        style={{
+          backgroundColor: "white",
+          borderRadius: 5,
+          elevation: isPressed ? 0 : 2,
+          flexDirection: "row",
+          justifyContent: "space-between",
+          marginTop: 8,
+          padding: 8,
+        }}
+      >
+        <Text>{loc.Description}</Text>
+        <Text>{loc.Cartons}</Text>
+        <Text>{loc.Pieces}</Text>
+        <Text>{loc.Initials}</Text>
+      </View>
+    </Pressable>
   );
 };

@@ -1,4 +1,5 @@
 import type { WarehouseStorageLocation } from "@scratchworks/inertiion-services";
+import * as Haptics from "expo-haptics";
 import { useEffect, useState } from "react";
 import {
   Button,
@@ -114,15 +115,28 @@ export const LocationCard = ({ location }: { location: string }) => {
     ({ warehouse }) => warehouse
   );
 
+  const [isPressed, setIsPressed] = useState<boolean>(false);
+
   return (
     <Pressable
-      onPress={() => {
+      onPressIn={() => {
+        setIsPressed(() => true);
+      }}
+      onPressOut={() => {
+        setIsPressed(() => false);
+      }}
+      onPress={async () => {
+        await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+
         dispatch(setSelectedWarehouseStorageLocation(location));
+      }}
+      onLongPress={() => {
+        console.log("will clear the whole dang pallet");
       }}
       style={{
         backgroundColor: "white",
         borderRadius: 10,
-        elevation: 1,
+        elevation: isPressed ? 0 : 2,
         margin: 8,
         padding: 8,
       }}
