@@ -1,32 +1,27 @@
-import "module-alias/register";
+import "module-alias";
 
 import * as trpcExpress from "@trpc/server/adapters/express";
 import express from "express";
-import expressWs from "express-ws";
 import { exit } from "process";
 
 import { appRouter, createContext } from "./trpc";
-import { handleWs } from "./ws";
 
-export * from "./trpc";
+export { AppRouter } from "./trpc/rootRouter";
+export * from "./types";
 
 const NODE_ENV = process.env.NODE_ENV;
 const SERVER_PORT = process.env.SERVER_PORT;
 
-const { app, getWss } = expressWs(express());
-
-const wss = getWss();
+const app = express();
 
 app.get("/", (_, res) => {
-  return res.json({ message: "OK, BROTHER!!!" });
+  return res.status(200).json({ message: "OK, B" });
 });
 
 app.use(
   "/trpc",
   trpcExpress.createExpressMiddleware({ router: appRouter, createContext })
 );
-
-app.ws("/ws", (ws, req) => handleWs(ws, req, wss));
 
 const startServer = async (port?: number) => {
   const PORT = port || parseInt(SERVER_PORT!);
