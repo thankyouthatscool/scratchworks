@@ -1,10 +1,11 @@
 import type { WarehouseStorageLocation } from "@scratchworks/inertiion-services";
 import * as Haptics from "expo-haptics";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Button,
+  FlatList,
+  Modal,
   Pressable,
-  ScrollView,
   Text,
   TextInput,
   View,
@@ -51,6 +52,8 @@ export const WarehouseStorage = () => {
     }
   };
 
+  const flatListRef = useRef<FlatList<string>>(null);
+
   useEffect(() => {
     handleInitialLoad();
   }, []);
@@ -82,8 +85,8 @@ export const WarehouseStorage = () => {
               title="clear"
             />
           </View>
-          <ScrollView>
-            {Object.keys(warehouseStorageLocations)
+          <FlatList
+            data={Object.keys(warehouseStorageLocations)
               .sort((a, b) => a.localeCompare(b))
               .filter((location) => {
                 if (searchTerm === "") {
@@ -97,11 +100,13 @@ export const WarehouseStorage = () => {
                       ?.toLowerCase()
                       .includes(searchTerm.toLowerCase())
                   );
-              })
-              .map((location) => (
-                <LocationCard key={location} location={location} />
-              ))}
-          </ScrollView>
+              })}
+            keyExtractor={(location) => location}
+            ref={flatListRef}
+            renderItem={({ item: location }) => (
+              <LocationCard location={location} />
+            )}
+          />
         </View>
       )}
     </View>
@@ -116,6 +121,7 @@ export const LocationCard = ({ location }: { location: string }) => {
   );
 
   const [isPressed, setIsPressed] = useState<boolean>(false);
+  const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
 
   return (
     <Pressable
@@ -133,38 +139,113 @@ export const LocationCard = ({ location }: { location: string }) => {
       onLongPress={async () => {
         await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
 
-        const res = await removePallet(location);
-
-        dispatch(setWarehouseStorageLocations(res));
-
-        setLSWarehouseStorageLocations(res);
-
         setIsPressed(() => false);
+
+        setIsModalVisible(() => true);
       }}
       style={{
         backgroundColor: "white",
+        borderWidth: 2,
+        borderColor: warehouseStorageLocations[location].every(
+          (item) => !!item.Description
+        )
+          ? "white"
+          : "green",
         borderRadius: 10,
         elevation: isPressed ? 0 : 2,
         margin: 8,
         padding: 8,
       }}
     >
+      <Modal
+        animationType="slide"
+        hardwareAccelerated
+        transparent
+        visible={isModalVisible}
+      >
+        <Pressable
+          onPress={() => {
+            setIsModalVisible(() => false);
+          }}
+          style={{
+            alignItems: "center",
+            height: "100%",
+            justifyContent: "center",
+          }}
+        >
+          <Pressable
+            style={{
+              backgroundColor: "white",
+              borderColor: "red",
+              borderRadius: 15,
+              borderWidth: 2,
+              padding: 8,
+            }}
+          >
+            <Text
+              style={{
+                color: "red",
+                fontSize: 16 * 1.5,
+                fontWeight: "500",
+                marginBottom: 8,
+              }}
+            >
+              Are you sure you want to remove the pallet?
+            </Text>
+            <View style={{ flexDirection: "row", justifyContent: "flex-end" }}>
+              <View style={{ marginRight: 8 }}>
+                <Button
+                  onPress={() => {
+                    setIsModalVisible(() => false);
+                  }}
+                  title="Cancel"
+                />
+              </View>
+              <Button
+                color="red"
+                onPress={async () => {
+                  const res = await removePallet(location);
+
+                  dispatch(setWarehouseStorageLocations(res));
+
+                  await setLSWarehouseStorageLocations(res);
+
+                  setIsModalVisible(() => false);
+                }}
+                title="Remove"
+              />
+            </View>
+          </Pressable>
+        </Pressable>
+      </Modal>
       <Text style={{ fontSize: 16 * 1.25, fontWeight: "500" }}>{location}</Text>
-      {warehouseStorageLocations[location].map((innerLocation) => {
+      {warehouseStorageLocations[location].map((innerLocation, index) => {
         if (!!innerLocation.Description) {
           return (
             <View
               key={`${location} - ${innerLocation.Description}`}
               style={{
-                flexDirection: "row",
                 justifyContent: "space-between",
+                marginTop: index === 0 ? 0 : 8,
               }}
             >
               <Text>{innerLocation.Description}</Text>
-              <Text>{innerLocation.Cartons}</Text>
-              <Text>{innerLocation.Pieces}</Text>
-              <Text>{innerLocation.Date}</Text>
-              <Text>{innerLocation.Initials}</Text>
+              <View
+                style={{
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                }}
+              >
+                <Text>
+                  {innerLocation.Cartons === 0 ? "" : innerLocation.Cartons}
+                </Text>
+                <Text>
+                  {innerLocation.Pieces === 0 ? "" : innerLocation.Pieces}
+                </Text>
+                <Text>{innerLocation.Date}</Text>
+                <Text>{innerLocation.Initials?.toUpperCase()}</Text>
+              </View>
+              {/* <View style={{ borderTopWidth: 1, marginVertical: 8 }} /> */}
             </View>
           );
         }
@@ -174,173 +255,3 @@ export const LocationCard = ({ location }: { location: string }) => {
     </Pressable>
   );
 };
-
-// export const WarehouseStorageLocationComponent = () => {
-//   const dispatch = useAppDispatch();
-
-//   const { selectedWarehouseStorageLocation, warehouseStorageLocations } =
-//     useAppSelector(({ warehouse }) => warehouse);
-
-//   const [formData, setFormData] = useState<{
-//     Description: string;
-//     Cartons: string;
-//     Pieces: string;
-//     Initials: string;
-//   }>({
-//     Description: "",
-//     Cartons: "",
-//     Pieces: "",
-//     Initials: "",
-//   });
-
-//   return (
-//     <View style={{ paddingHorizontal: 8 }}>
-//       {!!selectedWarehouseStorageLocation &&
-//       warehouseStorageLocations[selectedWarehouseStorageLocation].some(
-//         (loc) => !!loc.Description
-//       ) ? (
-//         <View>
-//           {warehouseStorageLocations[selectedWarehouseStorageLocation].map(
-//             (loc, index) => (
-//               <View
-//                 key={loc.Description}
-//                 style={{
-//                   flexDirection: "row",
-//                   justifyContent: "space-between",
-//                   marginTop: index !== 0 ? 8 : 0,
-//                 }}
-//               >
-//                 <Text>{loc.Description}</Text>
-//                 <Text>{loc.Cartons}</Text>
-//                 <Text>{loc.Pieces}</Text>
-//                 <Text>{loc.Date}</Text>
-//                 <Text>{loc.Initials}</Text>
-//               </View>
-//             )
-//           )}
-//           <View
-//             style={{
-//               flexDirection: "row",
-//               justifyContent: "flex-end",
-//               marginTop: 8,
-//             }}
-//           >
-//             <View style={{ marginRight: 8 }}>
-//               <Button
-//                 onPress={() => {
-//                   dispatch(setSelectedWarehouseStorageLocation(null));
-//                 }}
-//                 title="cancel"
-//               />
-//             </View>
-//             <Button
-// onPress={async () => {
-//   const res = await removePallet(
-//     selectedWarehouseStorageLocation
-//   );
-
-//   dispatch(setWarehouseStorageLocations(res));
-
-//   dispatch(setSelectedWarehouseStorageLocation(null));
-// }}
-//               title="Remove Pallet"
-//             />
-//           </View>
-//         </View>
-//       ) : (
-//         <View style={{ marginTop: 8 }}>
-//           <TextInput
-//             onChangeText={(e) =>
-//               setFormData((formData) => ({ ...formData, Description: e }))
-//             }
-//             placeholder="Description"
-//             style={{ backgroundColor: "white", padding: 8 }}
-//             value={formData.Description}
-//           />
-//           <View style={{ flexDirection: "row", marginTop: 8 }}>
-//             <TextInput
-//               keyboardType="numeric"
-//               onChangeText={(e) =>
-//                 setFormData((formData) => ({ ...formData, Cartons: e }))
-//               }
-//               placeholder="Cartons"
-//               style={{
-//                 backgroundColor: "white",
-//                 flex: 1,
-//                 marginRight: 8,
-//                 padding: 8,
-//               }}
-//               value={formData.Cartons}
-//             />
-//             <TextInput
-//               keyboardType="numeric"
-//               onChangeText={(e) =>
-//                 setFormData((formData) => ({ ...formData, Pieces: e }))
-//               }
-//               placeholder="Pieces"
-//               style={{
-//                 backgroundColor: "white",
-//                 flex: 1,
-//                 marginRight: 8,
-//                 padding: 8,
-//               }}
-//               value={formData.Pieces}
-//             />
-//             <TextInput
-//               onChangeText={(e) =>
-//                 setFormData((formData) => ({ ...formData, Initials: e }))
-//               }
-//               placeholder="Initials"
-//               style={{ backgroundColor: "white", flex: 1, padding: 8 }}
-//               value={formData.Initials}
-//             />
-//           </View>
-//           <View
-//             style={{
-//               flexDirection: "row",
-//               justifyContent: "flex-end",
-//               marginTop: 8,
-//             }}
-//           >
-//             <View style={{ marginRight: 8 }}>
-//               <Button
-//                 onPress={() => {
-//                   dispatch(setSelectedWarehouseStorageLocation(null));
-//                 }}
-//                 title="Cancel"
-//               />
-//             </View>
-//             <Button
-//               onPress={async () => {
-//                 const currentDate = new Date();
-
-//                 const dateString = `${currentDate.getHours()}:${currentDate
-//                   .getMinutes()
-//                   .toString()
-//                   .padStart(
-//                     2,
-//                     "0"
-//                   )} ${currentDate.getDate()}/${currentDate.getMonth()}/${currentDate.getFullYear()}`;
-
-//                 const res = await savePallet(
-//                   selectedWarehouseStorageLocation!,
-//                   {
-//                     ...formData,
-//                     Cartons: parseInt(formData.Cartons || "0"),
-//                     Date: dateString,
-//                     Pieces: parseInt(formData.Pieces || "0"),
-//                   }
-//                 );
-
-//                 dispatch(setWarehouseStorageLocations(res));
-
-//                 dispatch(setSelectedWarehouseStorageLocation(null));
-//               }}
-//               title="Save"
-//             />
-//           </View>
-//         </View>
-//       )}
-//     </View>
-//   );
-// };

@@ -1,4 +1,5 @@
 import { WarehouseStorageLocation } from "@scratchworks/inertiion-services";
+import type { Event } from "@scratchworks/inertiion-services";
 import * as Haptics from "expo-haptics";
 import { useEffect, useState } from "react";
 import {
@@ -15,7 +16,7 @@ import {
   setSelectedWarehouseStorageLocation,
   setWarehouseStorageLocations,
 } from "@store";
-import { removePallet, savePallet } from "@utils";
+import { savePallet, trpc } from "@utils";
 
 export const WarehouseStorageLocationComponent = () => {
   const dispatch = useAppDispatch();
@@ -23,8 +24,15 @@ export const WarehouseStorageLocationComponent = () => {
   const { selectedWarehouseStorageLocation, warehouseStorageLocations } =
     useAppSelector(({ warehouse }) => warehouse);
 
+  const { mutateAsync: addLocationEvent } =
+    trpc.warehouseStorageRouter.addLocationEvent.useMutation();
+
   const [formData, setFormData] = useState<WarehouseStorageLocation[]>([]);
   const [formMode, setFormMode] = useState<"add" | "edit">("add");
+  const [isLocationEdit, setIsLocationEdit] = useState<boolean>(false);
+  const [locationHistory, setLocationHistory] = useState<
+    { type: "locationUpdate"; description: string }[]
+  >([]);
 
   const [itemToEdit, setItemToEdit] = useState<{
     Description?: string;
@@ -55,7 +63,7 @@ export const WarehouseStorageLocationComponent = () => {
     return () => backHandler.remove();
   }, []);
 
-  return (
+  return !isLocationEdit ? (
     <View
       style={{
         marginHorizontal: 8,
@@ -81,21 +89,38 @@ export const WarehouseStorageLocationComponent = () => {
               title="Back"
             />
           </View>
+          <View style={{ marginRight: 8 }}>
+            <Button
+              color="orange"
+              onPress={() => {
+                setIsLocationEdit(() => true);
+              }}
+              title="Edit Location"
+            />
+          </View>
           <Button
+            color="#16A34A"
             onPress={async () => {
-              const currentDate = new Date();
+              if (!!locationHistory.length) {
+                await Promise.all(
+                  locationHistory.map((item) => {
+                    const { description, type } = item;
 
-              const dateString = `${currentDate.getHours()}:${currentDate
-                .getMinutes()
-                .toString()
-                .padStart(
-                  2,
-                  "0"
-                )} ${currentDate.getDate()}/${currentDate.getMonth()}/${currentDate.getFullYear()}`;
+                    return addLocationEvent({
+                      description,
+                      target: selectedWarehouseStorageLocation!,
+                      type,
+                    });
+                  })
+                );
+              }
 
               const res = await savePallet(
                 selectedWarehouseStorageLocation!,
-                formData.map((item) => ({ ...item, Date: dateString }))
+                formData.map((item) => ({
+                  ...item,
+                  Date: new Date().toISOString(),
+                }))
               );
 
               dispatch(setWarehouseStorageLocations(res));
@@ -106,6 +131,9 @@ export const WarehouseStorageLocationComponent = () => {
           />
         </View>
       </View>
+      <View>
+        <Text>Height: Medium</Text>
+      </View>
       {!!formData[0]?.Description &&
         formData.map((loc, index) => {
           return (
@@ -113,135 +141,172 @@ export const WarehouseStorageLocationComponent = () => {
               index={index}
               key={loc.Description}
               loc={loc}
+              onDelete={setLocationHistory}
               setFormData={setFormData}
               setFormMode={setFormMode}
               setItemToEdit={setItemToEdit}
             />
           );
         })}
-      <View style={{ marginTop: 8 }}>
-        <TextInput
-          defaultValue={itemToEdit.Description}
-          onChangeText={(e) =>
-            setItemToEdit((item) => ({ ...item, Description: e }))
-          }
-          placeholder="Description"
-          style={{ backgroundColor: "white", padding: 8 }}
-        />
-        <View style={{ flexDirection: "row", marginTop: 8 }}>
-          <TextInput
-            defaultValue={itemToEdit.Cartons}
-            keyboardType="numeric"
-            onChangeText={(e) =>
-              setItemToEdit((item) => ({ ...item, Cartons: e }))
-            }
-            placeholder="Cartons"
-            style={{
-              backgroundColor: "white",
-              flex: 1,
-              marginRight: 8,
-              padding: 8,
-            }}
-          />
-          <TextInput
-            defaultValue={itemToEdit.Pieces}
-            keyboardType="numeric"
-            onChangeText={(e) =>
-              setItemToEdit((item) => ({ ...item, Pieces: e }))
-            }
-            placeholder="Pieces"
-            style={{
-              backgroundColor: "white",
-              flex: 1,
-              marginRight: 8,
-              padding: 8,
-            }}
-          />
-          <TextInput
-            defaultValue={itemToEdit.Initials}
-            onChangeText={(e) =>
-              setItemToEdit((item) => ({ ...item, Initials: e }))
-            }
-            placeholder="Initials"
-            style={{
-              backgroundColor: "white",
-              flex: 1,
-              padding: 8,
-            }}
-          />
-        </View>
-      </View>
-      <View
-        style={{
-          flexDirection: "row",
-          justifyContent: "flex-end",
-          marginTop: 8,
-        }}
-      >
-        <View style={{ marginRight: 8 }}>
-          <Button
-            onPress={() => {
-              setItemToEdit(() => ({}));
-            }}
-            title="Cancel"
-          />
-        </View>
-        <Button
-          onPress={() => {
-            if (formMode === "edit") {
-              setFormData(() => {
-                return [
-                  ...formData.slice(0, itemToEdit.Index),
-                  {
-                    ...itemToEdit,
-                    Location: selectedWarehouseStorageLocation!,
-                    Cartons: parseInt(itemToEdit.Cartons!),
-                    Pieces: parseInt(itemToEdit.Pieces!),
-                  },
-                  ...formData.slice(itemToEdit.Index! + 1),
-                ];
-              });
-
-              setItemToEdit(() => ({}));
-
-              setFormMode(() => "add");
-            } else {
-              if (!formData[0]?.Description) {
-                setFormData(() => [
-                  {
-                    ...itemToEdit,
-                    Location: selectedWarehouseStorageLocation!,
-                    Cartons: parseInt(itemToEdit.Cartons!),
-                    Pieces: parseInt(itemToEdit.Pieces!),
-                  },
-                ]);
-              } else {
-                setFormData((formData) => [
-                  ...formData,
-                  {
-                    ...itemToEdit,
-                    Location: selectedWarehouseStorageLocation!,
-                    Cartons: parseInt(itemToEdit.Cartons!),
-                    Pieces: parseInt(itemToEdit.Pieces!),
-                  },
-                ]);
-
-                setItemToEdit(() => ({}));
-
-                setFormMode(() => "add");
+      {(!!Object.keys(itemToEdit).length ||
+        warehouseStorageLocations?.[selectedWarehouseStorageLocation!].every(
+          (loc) => !loc.Description
+        )) && (
+        <View>
+          <View style={{ marginTop: 8 }}>
+            <TextInput
+              defaultValue={itemToEdit.Description}
+              onChangeText={(e) =>
+                setItemToEdit((item) => ({ ...item, Description: e }))
               }
-            }
-          }}
-          title={formMode === "edit" ? "Save" : "Add"}
-        />
-      </View>
+              placeholder="Description"
+              style={{ backgroundColor: "white", padding: 8 }}
+            />
+            <View style={{ flexDirection: "row", marginTop: 8 }}>
+              <TextInput
+                defaultValue={itemToEdit.Cartons}
+                keyboardType="numeric"
+                onChangeText={(e) =>
+                  setItemToEdit((item) => ({ ...item, Cartons: e }))
+                }
+                placeholder="Cartons"
+                style={{
+                  backgroundColor: "white",
+                  flex: 1,
+                  marginRight: 8,
+                  padding: 8,
+                }}
+              />
+              <TextInput
+                defaultValue={itemToEdit.Pieces}
+                keyboardType="numeric"
+                onChangeText={(e) =>
+                  setItemToEdit((item) => ({ ...item, Pieces: e }))
+                }
+                placeholder="Pieces"
+                style={{
+                  backgroundColor: "white",
+                  flex: 1,
+                  marginRight: 8,
+                  padding: 8,
+                }}
+              />
+              <TextInput
+                defaultValue={itemToEdit.Initials}
+                onChangeText={(e) =>
+                  setItemToEdit((item) => ({ ...item, Initials: e }))
+                }
+                placeholder="Initials"
+                style={{
+                  backgroundColor: "white",
+                  flex: 1,
+                  padding: 8,
+                }}
+              />
+            </View>
+          </View>
+          <View
+            style={{
+              flexDirection: "row",
+              justifyContent: "flex-end",
+              marginTop: 8,
+            }}
+          >
+            <View style={{ marginRight: 8 }}>
+              <Button
+                disabled={!Object.keys(itemToEdit).length}
+                onPress={() => {
+                  setItemToEdit(() => ({}));
+
+                  setFormMode(() => "add");
+                }}
+                title="Cancel"
+              />
+            </View>
+            <Button
+              color="#D97706"
+              onPress={async () => {
+                setLocationHistory((locationHistory) => [
+                  ...locationHistory,
+                  {
+                    description: `${
+                      itemToEdit.Initials
+                    } ${formMode} ${selectedWarehouseStorageLocation} ${JSON.stringify(
+                      itemToEdit
+                    )}`,
+                    type: "locationUpdate",
+                  },
+                ]);
+
+                if (formMode === "edit") {
+                  setFormData(() => {
+                    return [
+                      ...formData.slice(0, itemToEdit.Index),
+                      {
+                        ...itemToEdit,
+                        Location: selectedWarehouseStorageLocation!,
+                        Cartons: parseInt(itemToEdit.Cartons! || "0"),
+                        Pieces: parseInt(itemToEdit.Pieces! || "0"),
+                        Initials: itemToEdit.Initials?.toUpperCase(),
+                      },
+                      ...formData.slice(itemToEdit.Index! + 1),
+                    ];
+                  });
+
+                  setItemToEdit(() => ({}));
+
+                  setFormMode(() => "add");
+                } else {
+                  if (!formData[0]?.Description) {
+                    setFormData(() => [
+                      {
+                        ...itemToEdit,
+                        Location: selectedWarehouseStorageLocation!,
+                        Cartons: parseInt(itemToEdit.Cartons! || "0"),
+                        Pieces: parseInt(itemToEdit.Pieces! || "0"),
+                        Initials: itemToEdit.Initials?.toUpperCase(),
+                      },
+                    ]);
+                  } else {
+                    setFormData((formData) => [
+                      ...formData,
+                      {
+                        ...itemToEdit,
+                        Location: selectedWarehouseStorageLocation!,
+                        Cartons: parseInt(itemToEdit.Cartons! || "0"),
+                        Pieces: parseInt(itemToEdit.Pieces! || "0"),
+                        Initials: itemToEdit.Initials?.toUpperCase(),
+                      },
+                    ]);
+
+                    setItemToEdit(() => ({}));
+
+                    setFormMode(() => "add");
+                  }
+                }
+              }}
+              title={formMode === "edit" ? "Update" : "Add"}
+            />
+          </View>
+        </View>
+      )}
     </View>
+  ) : (
+    <LocationEditComponent />
   );
 };
 
 interface PalletItemCardProps {
   index: number;
   loc: WarehouseStorageLocation;
+  onDelete: React.Dispatch<
+    React.SetStateAction<
+      {
+        type: "locationUpdate";
+        description: string;
+      }[]
+    >
+  >;
   setFormMode: React.Dispatch<React.SetStateAction<"add" | "edit">>;
   setItemToEdit: React.Dispatch<
     React.SetStateAction<{
@@ -258,6 +323,7 @@ interface PalletItemCardProps {
 export const PalletItemCard = ({
   index,
   loc,
+  onDelete,
   setFormData,
   setFormMode,
   setItemToEdit,
@@ -286,6 +352,14 @@ export const PalletItemCard = ({
       onLongPress={async () => {
         await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
 
+        onDelete((locationHistory) => [
+          ...locationHistory,
+          {
+            description: `deleted ${JSON.stringify(loc)}`,
+            type: "locationUpdate",
+          },
+        ]);
+
         setFormData((formData) => [
           ...formData.slice(0, index),
           ...formData.slice(index + 1),
@@ -297,17 +371,58 @@ export const PalletItemCard = ({
           backgroundColor: "white",
           borderRadius: 5,
           elevation: isPressed ? 0 : 2,
-          flexDirection: "row",
-          justifyContent: "space-between",
           marginTop: 8,
           padding: 8,
         }}
       >
         <Text>{loc.Description}</Text>
-        <Text>{loc.Cartons}</Text>
-        <Text>{loc.Pieces}</Text>
-        <Text>{loc.Initials}</Text>
+        <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+          <Text>{loc.Cartons}</Text>
+          <Text>{loc.Pieces}</Text>
+          <Text>{loc.Initials}</Text>
+        </View>
       </View>
     </Pressable>
+  );
+};
+
+const LocationEditComponent = () => {
+  const { selectedWarehouseStorageLocation } = useAppSelector(
+    ({ warehouse }) => warehouse
+  );
+
+  const [locationEventHistory, setLocationEventHistory] = useState<Event[]>([]);
+
+  const { mutateAsync: getLocationEventHistory } =
+    trpc.warehouseStorageRouter.getLocationEventHistory.useMutation();
+
+  const handleGetLocationEventHistory = async () => {
+    const res = await getLocationEventHistory(
+      selectedWarehouseStorageLocation!
+    );
+
+    setLocationEventHistory(() => res.events);
+  };
+
+  useEffect(() => {
+    handleGetLocationEventHistory();
+  }, []);
+
+  return (
+    <View style={{ padding: 8 }}>
+      <Text>Edit {selectedWarehouseStorageLocation}</Text>
+      <TextInput keyboardType="numeric" placeholder="Height" />
+      <Text style={{ fontSize: 16 * 1.25, fontWeight: "500" }}>
+        Location History
+      </Text>
+      {locationEventHistory.map((loc) => {
+        return (
+          <View key={loc.id}>
+            <Text>{loc.description}</Text>
+            <View style={{ borderTopWidth: 1 }} />
+          </View>
+        );
+      })}
+    </View>
   );
 };
