@@ -29,6 +29,8 @@ import {
 export const WarehouseStorage = () => {
   const dispatch = useAppDispatch();
 
+  const [isShowEmptyOnly, setIsShowEmptyOnly] = useState(false);
+
   const { searchTerm } = useAppSelector(({ app }) => app);
 
   const { selectedWarehouseStorageLocation, warehouseStorageLocations } =
@@ -77,6 +79,15 @@ export const WarehouseStorage = () => {
               style={{ flex: 1, padding: 8 }}
               value={searchTerm}
             />
+            <View style={{ marginRight: 8 }}>
+              <Button
+                color={isShowEmptyOnly ? "orange" : ""}
+                onPress={() => {
+                  setIsShowEmptyOnly((isShowEmptyOnly) => !isShowEmptyOnly);
+                }}
+                title={isShowEmptyOnly ? "All" : "Available"}
+              />
+            </View>
             <Button
               disabled={!searchTerm}
               onPress={() => {
@@ -89,6 +100,15 @@ export const WarehouseStorage = () => {
             data={Object.keys(warehouseStorageLocations)
               .sort((a, b) => a.localeCompare(b))
               .filter((location) => {
+                if (isShowEmptyOnly) {
+                  return (
+                    !warehouseStorageLocations[location].length ||
+                    warehouseStorageLocations[location].every(
+                      (item) => !item.Description
+                    )
+                  );
+                }
+
                 if (searchTerm === "") {
                   return true;
                 }
@@ -146,11 +166,13 @@ export const LocationCard = ({ location }: { location: string }) => {
       style={{
         backgroundColor: "white",
         borderWidth: 2,
-        borderColor: warehouseStorageLocations[location].every(
-          (item) => !!item.Description
-        )
-          ? "white"
-          : "green",
+        borderColor:
+          warehouseStorageLocations[location].length &&
+          warehouseStorageLocations[location].every(
+            (item) => !!item.Description
+          )
+            ? "white"
+            : "green",
         borderRadius: 10,
         elevation: isPressed ? 0 : 2,
         margin: 8,

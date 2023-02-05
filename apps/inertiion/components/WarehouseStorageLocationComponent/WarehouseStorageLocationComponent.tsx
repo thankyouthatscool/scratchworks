@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import {
   BackHandler,
   Button,
+  NativeEventSubscription,
   Pressable,
   Text,
   TextInput,
@@ -51,17 +52,24 @@ export const WarehouseStorageLocationComponent = () => {
   }, [selectedWarehouseStorageLocation]);
 
   useEffect(() => {
-    const backHandler = BackHandler.addEventListener(
-      "hardwareBackPress",
-      () => {
+    let backHandler: NativeEventSubscription;
+
+    if (isLocationEdit) {
+      backHandler = BackHandler.addEventListener("hardwareBackPress", () => {
+        setIsLocationEdit(() => false);
+
+        return true;
+      });
+    } else {
+      backHandler = BackHandler.addEventListener("hardwareBackPress", () => {
         dispatch(setSelectedWarehouseStorageLocation(null));
 
         return true;
-      }
-    );
+      });
+    }
 
     return () => backHandler.remove();
-  }, []);
+  }, [isLocationEdit]);
 
   return !isLocationEdit ? (
     <View
@@ -148,148 +156,143 @@ export const WarehouseStorageLocationComponent = () => {
             />
           );
         })}
-      {(!!Object.keys(itemToEdit).length ||
-        warehouseStorageLocations?.[selectedWarehouseStorageLocation!].every(
-          (loc) => !loc.Description
-        )) && (
-        <View>
-          <View style={{ marginTop: 8 }}>
-            <TextInput
-              defaultValue={itemToEdit.Description}
-              onChangeText={(e) =>
-                setItemToEdit((item) => ({ ...item, Description: e }))
-              }
-              placeholder="Description"
-              style={{ backgroundColor: "white", padding: 8 }}
-            />
-            <View style={{ flexDirection: "row", marginTop: 8 }}>
-              <TextInput
-                defaultValue={itemToEdit.Cartons}
-                keyboardType="numeric"
-                onChangeText={(e) =>
-                  setItemToEdit((item) => ({ ...item, Cartons: e }))
-                }
-                placeholder="Cartons"
-                style={{
-                  backgroundColor: "white",
-                  flex: 1,
-                  marginRight: 8,
-                  padding: 8,
-                }}
-              />
-              <TextInput
-                defaultValue={itemToEdit.Pieces}
-                keyboardType="numeric"
-                onChangeText={(e) =>
-                  setItemToEdit((item) => ({ ...item, Pieces: e }))
-                }
-                placeholder="Pieces"
-                style={{
-                  backgroundColor: "white",
-                  flex: 1,
-                  marginRight: 8,
-                  padding: 8,
-                }}
-              />
-              <TextInput
-                defaultValue={itemToEdit.Initials}
-                onChangeText={(e) =>
-                  setItemToEdit((item) => ({ ...item, Initials: e }))
-                }
-                placeholder="Initials"
-                style={{
-                  backgroundColor: "white",
-                  flex: 1,
-                  padding: 8,
-                }}
-              />
-            </View>
-          </View>
-          <View
-            style={{
-              flexDirection: "row",
-              justifyContent: "flex-end",
-              marginTop: 8,
-            }}
-          >
-            <View style={{ marginRight: 8 }}>
-              <Button
-                disabled={!Object.keys(itemToEdit).length}
-                onPress={() => {
-                  setItemToEdit(() => ({}));
+      <View style={{ marginTop: 8 }}>
+        <TextInput
+          defaultValue={itemToEdit.Description}
+          onChangeText={(e) =>
+            setItemToEdit((item) => ({ ...item, Description: e }))
+          }
+          placeholder="Description"
+          style={{ backgroundColor: "white", padding: 8 }}
+        />
+      </View>
+      <View style={{ flexDirection: "row", marginTop: 8 }}>
+        <TextInput
+          defaultValue={itemToEdit.Cartons}
+          keyboardType="numeric"
+          onChangeText={(e) =>
+            setItemToEdit((item) => ({ ...item, Cartons: e }))
+          }
+          placeholder="Cartons"
+          style={{
+            backgroundColor: "white",
+            flex: 1,
+            marginRight: 8,
+            padding: 8,
+          }}
+        />
+        <TextInput
+          defaultValue={itemToEdit.Pieces}
+          keyboardType="numeric"
+          onChangeText={(e) =>
+            setItemToEdit((item) => ({ ...item, Pieces: e }))
+          }
+          placeholder="Pieces"
+          style={{
+            backgroundColor: "white",
+            flex: 1,
+            marginRight: 8,
+            padding: 8,
+          }}
+        />
+        <TextInput
+          autoCapitalize="characters"
+          defaultValue={itemToEdit.Initials}
+          onChangeText={(e) =>
+            setItemToEdit((item) => ({ ...item, Initials: e }))
+          }
+          placeholder="Initials"
+          style={{
+            backgroundColor: "white",
+            flex: 1,
+            padding: 8,
+          }}
+        />
+      </View>
+      <View
+        style={{
+          flexDirection: "row",
+          justifyContent: "flex-end",
+          marginTop: 8,
+        }}
+      >
+        <View style={{ marginRight: 8 }}>
+          <Button
+            disabled={!Object.keys(itemToEdit).length}
+            onPress={() => {
+              setItemToEdit(() => ({}));
 
-                  setFormMode(() => "add");
-                }}
-                title="Cancel"
-              />
-            </View>
-            <Button
-              color="#D97706"
-              onPress={async () => {
-                setLocationHistory((locationHistory) => [
-                  ...locationHistory,
+              setFormMode(() => "add");
+            }}
+            title="Cancel"
+          />
+        </View>
+        <Button
+          color="orange"
+          disabled={!itemToEdit.Description || !itemToEdit.Initials}
+          onPress={async () => {
+            setLocationHistory((locationHistory) => [
+              ...locationHistory,
+              {
+                description: `${
+                  itemToEdit.Initials
+                } ${formMode} ${selectedWarehouseStorageLocation} ${JSON.stringify(
+                  itemToEdit
+                )}`,
+                type: "locationUpdate",
+              },
+            ]);
+
+            if (formMode === "edit") {
+              setFormData(() => {
+                return [
+                  ...formData.slice(0, itemToEdit.Index),
                   {
-                    description: `${
-                      itemToEdit.Initials
-                    } ${formMode} ${selectedWarehouseStorageLocation} ${JSON.stringify(
-                      itemToEdit
-                    )}`,
-                    type: "locationUpdate",
+                    ...itemToEdit,
+                    Location: selectedWarehouseStorageLocation!,
+                    Cartons: parseInt(itemToEdit.Cartons! || "0"),
+                    Pieces: parseInt(itemToEdit.Pieces! || "0"),
+                    Initials: itemToEdit.Initials?.toUpperCase(),
+                  },
+                  ...formData.slice(itemToEdit.Index! + 1),
+                ];
+              });
+
+              setItemToEdit(() => ({}));
+
+              setFormMode(() => "add");
+            } else {
+              if (!formData[0]?.Description) {
+                setFormData(() => [
+                  {
+                    ...itemToEdit,
+                    Location: selectedWarehouseStorageLocation!,
+                    Cartons: parseInt(itemToEdit.Cartons! || "0"),
+                    Pieces: parseInt(itemToEdit.Pieces! || "0"),
+                    Initials: itemToEdit.Initials?.toUpperCase(),
+                  },
+                ]);
+              } else {
+                setFormData((formData) => [
+                  ...formData,
+                  {
+                    ...itemToEdit,
+                    Location: selectedWarehouseStorageLocation!,
+                    Cartons: parseInt(itemToEdit.Cartons! || "0"),
+                    Pieces: parseInt(itemToEdit.Pieces! || "0"),
+                    Initials: itemToEdit.Initials?.toUpperCase(),
                   },
                 ]);
 
-                if (formMode === "edit") {
-                  setFormData(() => {
-                    return [
-                      ...formData.slice(0, itemToEdit.Index),
-                      {
-                        ...itemToEdit,
-                        Location: selectedWarehouseStorageLocation!,
-                        Cartons: parseInt(itemToEdit.Cartons! || "0"),
-                        Pieces: parseInt(itemToEdit.Pieces! || "0"),
-                        Initials: itemToEdit.Initials?.toUpperCase(),
-                      },
-                      ...formData.slice(itemToEdit.Index! + 1),
-                    ];
-                  });
+                setItemToEdit(() => ({}));
 
-                  setItemToEdit(() => ({}));
-
-                  setFormMode(() => "add");
-                } else {
-                  if (!formData[0]?.Description) {
-                    setFormData(() => [
-                      {
-                        ...itemToEdit,
-                        Location: selectedWarehouseStorageLocation!,
-                        Cartons: parseInt(itemToEdit.Cartons! || "0"),
-                        Pieces: parseInt(itemToEdit.Pieces! || "0"),
-                        Initials: itemToEdit.Initials?.toUpperCase(),
-                      },
-                    ]);
-                  } else {
-                    setFormData((formData) => [
-                      ...formData,
-                      {
-                        ...itemToEdit,
-                        Location: selectedWarehouseStorageLocation!,
-                        Cartons: parseInt(itemToEdit.Cartons! || "0"),
-                        Pieces: parseInt(itemToEdit.Pieces! || "0"),
-                        Initials: itemToEdit.Initials?.toUpperCase(),
-                      },
-                    ]);
-
-                    setItemToEdit(() => ({}));
-
-                    setFormMode(() => "add");
-                  }
-                }
-              }}
-              title={formMode === "edit" ? "Update" : "Add"}
-            />
-          </View>
-        </View>
-      )}
+                setFormMode(() => "add");
+              }
+            }
+          }}
+          title={formMode === "edit" ? "Update" : "Add"}
+        />
+      </View>
     </View>
   ) : (
     <LocationEditComponent />
