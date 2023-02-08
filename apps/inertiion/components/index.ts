@@ -1,3 +1,4 @@
 export * from "./AppRoot";
 
-export * from "./WarehouseStorageLocationComponent";
+export * from "./WarehouseStorageItem";
+export * from "./WarehouseStorageListItem";

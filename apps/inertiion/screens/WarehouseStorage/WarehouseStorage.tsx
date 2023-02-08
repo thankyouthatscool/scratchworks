@@ -1,279 +1,257 @@
-import type { WarehouseStorageLocation } from "@scratchworks/inertiion-services";
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import { Event, Location } from "@scratchworks/inertiion-services";
 import * as Haptics from "expo-haptics";
-import { useEffect, useRef, useState } from "react";
-import {
-  Button,
-  FlatList,
-  Modal,
-  Pressable,
-  Text,
-  TextInput,
-  View,
-} from "react-native";
+import { FC, useEffect, useState } from "react";
+import { Button, FlatList, Modal, Pressable, Text, View } from "react-native";
 
-import { WarehouseStorageLocationComponent } from "@components/WarehouseStorageLocationComponent";
-import { useAppDispatch, useAppSelector } from "@hooks";
+import { WarehouseStorageListItem } from "@components/WarehouseStorageListItem";
+import { WarehouseStorageItem } from "@components/WarehouseStorageItem";
+import { useAppDispatch, useAppSelector, useToast } from "@hooks";
+import { setSearchTerm, setWarehouseStorageLocations } from "@store";
 import {
-  setSearchTerm,
-  setSelectedWarehouseStorageLocation,
-  setWarehouseStorageLocations,
-} from "@store";
-import {
+  clearLSWarehouseStorageLocations,
   getLSWarehouseStorageLocations,
-  removePallet,
-  savePallet,
+  getLSUniqueWarehouseStorageLocations,
   setLSWarehouseStorageLocations,
+  setLSUniqueWarehouseLocations,
   trpc,
 } from "@utils";
 
+import {
+  ButtonWrapper,
+  SearchBarWrapper,
+  SearchTextInput,
+  WarehouseStorageWrapper,
+} from "./Styled";
+
 export const WarehouseStorage = () => {
+  // Hooks
   const dispatch = useAppDispatch();
 
-  const [isShowEmptyOnly, setIsShowEmptyOnly] = useState(false);
-
-  const { searchTerm } = useAppSelector(({ app }) => app);
-
-  const { selectedWarehouseStorageLocation, warehouseStorageLocations } =
-    useAppSelector(({ warehouse }) => warehouse);
+  const {
+    searchTerm,
+    selectedWarehouseStorageLocation,
+    warehouseStorageLocations,
+  } = useAppSelector(
+    ({
+      app: { searchTerm },
+      warehouse: {
+        selectedWarehouseStorageLocation,
+        warehouseStorageLocations,
+      },
+    }) => ({
+      searchTerm,
+      selectedWarehouseStorageLocation,
+      warehouseStorageLocations,
+    })
+  );
 
   const { mutateAsync: getAllLocations } =
     trpc.warehouseStorageRouter.getAllLocations.useMutation();
+  const { mutateAsync: cleanDatabase } =
+    trpc.warehouseStorageRouter.cleanDatabase.useMutation();
+  const { mutateAsync: parseSpreadsheet } =
+    trpc.warehouseStorageRouter.parseSpreadsheet.useMutation();
 
+  const { showToast } = useToast();
+
+  // State
+  const [isInitialLodeComplete, setIsInitialLoadComplete] =
+    useState<boolean>(false);
+  const [uniqueWarehouseLocations, setUniqueWarehouseLocations] = useState<
+    string[]
+  >([]);
+
+  // Handlers
   const handleInitialLoad = async () => {
-    const res = await getLSWarehouseStorageLocations();
+    try {
+      const allPromiseRes = await Promise.all(
+        [
+          getLSWarehouseStorageLocations,
+          getLSUniqueWarehouseStorageLocations,
+        ].map(async (func) => await func())
+      );
 
-    if (!res) {
-      const res: { [key: string]: WarehouseStorageLocation[] } =
-        await getAllLocations();
+      const [res, uniqueLocations] = allPromiseRes as [
+        res: (Location & { events: Event[] })[],
+        uniqueLocations: string[]
+      ];
 
-      await setLSWarehouseStorageLocations(res);
+      setUniqueWarehouseLocations(() => uniqueLocations || []);
 
-      dispatch(setWarehouseStorageLocations(res));
-    } else {
-      dispatch(setWarehouseStorageLocations(res));
+      if (!res) {
+        const { locations, status } = (await getAllLocations()) as unknown as {
+          locations: (Location & { events: Event[] })[];
+          status: string;
+        };
+
+        if (status !== "OK") throw new Error();
+
+        const uniqLocs = Array.from(
+          new Set(locations.map((loc) => loc.locationName))
+        );
+
+        await setLSUniqueWarehouseLocations(uniqLocs);
+
+        await setLSWarehouseStorageLocations(locations);
+
+        dispatch(setWarehouseStorageLocations(locations));
+      } else {
+        dispatch(setWarehouseStorageLocations(res));
+      }
+    } catch {
+      showToast({});
     }
+
+    setIsInitialLoadComplete(() => true);
   };
 
-  const flatListRef = useRef<FlatList<string>>(null);
+  const handleSetSearchTerm = (searchTerm: string) => {
+    dispatch(setSearchTerm(searchTerm));
+  };
 
+  const handleCleanDB = async () => {
+    await cleanDatabase();
+  };
+
+  const handleParseSpreadsheet = async () => {
+    await parseSpreadsheet();
+  };
+
+  const handleClearSearchTerm = async () => {
+    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+
+    dispatch(setSearchTerm(""));
+  };
+
+  const handleDeepClean = async () => {
+    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+
+    await clearLSWarehouseStorageLocations();
+
+    handleInitialLoad();
+  };
+
+  // Effects
   useEffect(() => {
     handleInitialLoad();
   }, []);
 
-  return (
-    <View style={{ height: "100%" }}>
-      {!!selectedWarehouseStorageLocation ? (
-        <WarehouseStorageLocationComponent />
-      ) : (
-        <View style={{ height: "100%" }}>
-          <View
-            style={{
-              alignItems: "center",
-              flexDirection: "row",
-              marginRight: 8,
-            }}
-          >
-            <TextInput
-              onChangeText={(e) => dispatch(setSearchTerm(e))}
-              placeholder="Search"
-              style={{ flex: 1, padding: 8 }}
-              value={searchTerm}
-            />
-            <View style={{ marginRight: 8 }}>
-              <Button
-                color={isShowEmptyOnly ? "orange" : ""}
-                onPress={() => {
-                  setIsShowEmptyOnly((isShowEmptyOnly) => !isShowEmptyOnly);
-                }}
-                title={isShowEmptyOnly ? "All" : "Available"}
-              />
-            </View>
-            <Button
-              disabled={!searchTerm}
-              onPress={() => {
-                dispatch(setSearchTerm(""));
-              }}
-              title="clear"
-            />
-          </View>
-          <FlatList
-            data={Object.keys(warehouseStorageLocations)
-              .sort((a, b) => a.localeCompare(b))
-              .filter((location) => {
-                if (isShowEmptyOnly) {
-                  return (
-                    !warehouseStorageLocations[location].length ||
-                    warehouseStorageLocations[location].every(
-                      (item) => !item.Description
-                    )
-                  );
-                }
+  useEffect(() => {
+    if (!!isInitialLodeComplete) {
+      setLSWarehouseStorageLocations(warehouseStorageLocations);
+    }
+  }, [isInitialLodeComplete, warehouseStorageLocations]);
 
-                if (searchTerm === "") {
-                  return true;
-                }
+  return !!selectedWarehouseStorageLocation ? (
+    <WarehouseStorageItem />
+  ) : (
+    <WarehouseStorageWrapper>
+      <SearchBarWrapper>
+        <SearchTextInput
+          onChangeText={handleSetSearchTerm}
+          placeholder="Search"
+          value={searchTerm}
+        />
+        <ButtonWrapper>
+          <Button title="All" />
+        </ButtonWrapper>
+        <ClearPressable
+          handleClearSearchTerm={handleClearSearchTerm}
+          handleDeepClean={handleDeepClean}
+        />
+      </SearchBarWrapper>
+      <FlatList
+        data={uniqueWarehouseLocations
+          .map((loc) => ({ loc, key: loc }))
+          .filter(({ loc }) => {
+            if (!searchTerm) return true;
 
-                return warehouseStorageLocations[location]
-                  .map((location) => location.Description)
-                  .some((description) =>
-                    description
-                      ?.toLowerCase()
-                      .includes(searchTerm.toLowerCase())
-                  );
-              })}
-            keyExtractor={(location) => location}
-            ref={flatListRef}
-            renderItem={({ item: location }) => (
-              <LocationCard location={location} />
-            )}
-          />
-        </View>
-      )}
-    </View>
+            return warehouseStorageLocations
+              .filter((loc) =>
+                loc.description.toLowerCase().includes(searchTerm.toLowerCase())
+              )
+              .map((loc) => loc.locationName)
+              .includes(loc);
+          })}
+        keyExtractor={({ key }) => key}
+        overScrollMode="never"
+        renderItem={({ index, item: { loc: item } }) => (
+          <WarehouseStorageListItem index={index} item={item} />
+        )}
+        showsVerticalScrollIndicator={false}
+      />
+    </WarehouseStorageWrapper>
   );
 };
 
-export const LocationCard = ({ location }: { location: string }) => {
-  const dispatch = useAppDispatch();
+interface ClearPressableProps {
+  handleClearSearchTerm: () => void;
+  handleDeepClean: () => void;
+}
 
-  const { warehouseStorageLocations } = useAppSelector(
-    ({ warehouse }) => warehouse
-  );
-
+const ClearPressable: FC<ClearPressableProps> = ({
+  handleClearSearchTerm,
+  handleDeepClean,
+}) => {
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [isPressed, setIsPressed] = useState<boolean>(false);
-  const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
 
   return (
     <Pressable
-      onPressIn={() => {
-        setIsPressed(() => true);
-      }}
-      onPressOut={() => {
-        setIsPressed(() => false);
-      }}
-      onPress={async () => {
-        await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-
-        dispatch(setSelectedWarehouseStorageLocation(location));
-      }}
-      onLongPress={async () => {
-        await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
-
-        setIsPressed(() => false);
-
-        setIsModalVisible(() => true);
-      }}
-      style={{
-        backgroundColor: "white",
-        borderWidth: 2,
-        borderColor:
-          warehouseStorageLocations[location].length &&
-          warehouseStorageLocations[location].every(
-            (item) => !!item.Description
-          )
-            ? "white"
-            : "green",
-        borderRadius: 10,
-        elevation: isPressed ? 0 : 2,
-        margin: 8,
-        padding: 8,
-      }}
+      onPressIn={() => setIsPressed(() => true)}
+      onPressOut={() => setIsPressed(() => false)}
+      onPress={handleClearSearchTerm}
+      onLongPress={() => setIsModalOpen(() => true)}
     >
+      <MaterialIcons
+        color={isPressed ? "orange" : "black"}
+        name="clear-all"
+        size={30}
+      />
       <Modal
         animationType="slide"
         hardwareAccelerated
+        style={{ alignItems: "center", justifyContent: "center" }}
         transparent
-        visible={isModalVisible}
+        visible={isModalOpen}
       >
         <Pressable
           onPress={() => {
-            setIsModalVisible(() => false);
-          }}
-          style={{
-            alignItems: "center",
-            height: "100%",
-            justifyContent: "center",
+            setIsModalOpen(() => false);
           }}
         >
-          <Pressable
+          <View
             style={{
-              backgroundColor: "white",
-              borderColor: "red",
-              borderRadius: 15,
-              borderWidth: 2,
-              padding: 8,
+              alignItems: "center",
+              height: "100%",
+              justifyContent: "center",
             }}
           >
-            <Text
-              style={{
-                color: "red",
-                fontSize: 16 * 1.5,
-                fontWeight: "500",
-                marginBottom: 8,
-              }}
-            >
-              Are you sure you want to remove the pallet?
-            </Text>
-            <View style={{ flexDirection: "row", justifyContent: "flex-end" }}>
-              <View style={{ marginRight: 8 }}>
-                <Button
-                  onPress={() => {
-                    setIsModalVisible(() => false);
-                  }}
-                  title="Cancel"
-                />
-              </View>
-              <Button
-                color="red"
-                onPress={async () => {
-                  const res = await removePallet(location);
-
-                  dispatch(setWarehouseStorageLocations(res));
-
-                  await setLSWarehouseStorageLocations(res);
-
-                  setIsModalVisible(() => false);
-                }}
-                title="Remove"
-              />
-            </View>
-          </Pressable>
-        </Pressable>
-      </Modal>
-      <Text style={{ fontSize: 16 * 1.25, fontWeight: "500" }}>{location}</Text>
-      {warehouseStorageLocations[location].map((innerLocation, index) => {
-        if (!!innerLocation.Description) {
-          return (
-            <View
-              key={`${location} - ${innerLocation.Description}`}
-              style={{
-                justifyContent: "space-between",
-                marginTop: index === 0 ? 0 : 8,
-              }}
-            >
-              <Text>{innerLocation.Description}</Text>
+            <Pressable>
               <View
                 style={{
-                  flexDirection: "row",
-                  justifyContent: "space-between",
+                  backgroundColor: "white",
+                  borderRadius: 5,
+                  borderWidth: 2,
+                  borderColor: "red",
+                  padding: 8,
                 }}
               >
-                <Text>
-                  {innerLocation.Cartons === 0 ? "" : innerLocation.Cartons}
-                </Text>
-                <Text>
-                  {innerLocation.Pieces === 0 ? "" : innerLocation.Pieces}
-                </Text>
-                <Text>{innerLocation.Date}</Text>
-                <Text>{innerLocation.Initials?.toUpperCase()}</Text>
+                <View style={{ flexDirection: "row" }}>
+                  <ButtonWrapper>
+                    <Button
+                      onPress={() => setIsModalOpen(() => false)}
+                      title="Cancel"
+                    />
+                  </ButtonWrapper>
+                  <Button color="red" onPress={handleDeepClean} title="deep" />
+                </View>
               </View>
-              {/* <View style={{ borderTopWidth: 1, marginVertical: 8 }} /> */}
-            </View>
-          );
-        }
-
-        return null;
-      })}
+            </Pressable>
+          </View>
+        </Pressable>
+      </Modal>
     </Pressable>
   );
 };

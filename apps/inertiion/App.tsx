@@ -33,7 +33,7 @@ export const App = () => {
           <SafeAreaProvider>
             <RootSiblingParent>
               <View style={styles.container}>
-                <StatusBar style="auto" />
+                <StatusBar backgroundColor="#00000000" style="auto" />
                 <AppRoot />
               </View>
             </RootSiblingParent>
@@ -51,11 +51,9 @@ const styles = StyleSheet.create({
   },
 });
 
-// TODO: Add prisma and all that.
 // TODO: Manual wipe of local storage data and pull the data from the spreadi.
-
-// TODO: Everything will need to be on over two lines.
 // TODO: Haptics.
 // TODO: Delete confirmation.
-// TODO: Better generic message for toast.
-// TODO: Flatlist for better rendering.
+// TODO: Show loading states
+
+// DONE: Some bullshit with the array when clearing all items from a location.

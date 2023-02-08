@@ -3,41 +3,95 @@ import { z } from "zod";
 import { publicProcedure, router } from ".";
 import { prisma } from "../db";
 import { parseExcelFile } from "../utils";
-import { WarehouseStorageLocation } from "types";
 
-interface WarehouseStorageLocationExt extends WarehouseStorageLocation {
-  Colourway?: string;
-}
+const addWarehouseStorageItemInput = z.object({
+  locationName: z.string(),
+  description: z.string(),
+  cartons: z.number().optional(),
+  piecesPer: z.number().optional(),
+  piecesTotal: z.number().optional(),
+  date: z.string().optional(),
+  initials: z.string(),
+});
 
-// Location Data
+// Items
+const addWarehouseStorageItem = publicProcedure
+  .input(addWarehouseStorageItemInput)
+  .mutation(async ({ input }) => {
+    try {
+      const res = await prisma.location.create({
+        data: {
+          ...input,
+          date: !!input.date ? new Date(input.date) : new Date(),
+        },
+        include: { events: true },
+      });
+
+      return { newLocation: res, status: "OK" };
+    } catch {
+      return { newLocation: null, status: "FAIL" };
+    }
+  });
+
+// Locations
 const getAllLocations = publicProcedure
   .input(z.string().optional())
   .mutation(async () => {
-    const fileContent = parseExcelFile();
+    try {
+      const res = await prisma.location.findMany({ include: { events: true } });
 
-    const z = fileContent.reduce((acc, val) => {
-      const { Colourway, Description, ...rest } =
-        val as WarehouseStorageLocationExt;
+      return { locations: res, status: "OK" };
+    } catch {
+      return { locations: [], status: "FAIL" };
+    }
+  });
 
-      const concatenatedDescriptionString = [Description, Colourway]
-        .join(" ")
-        .trim();
+const cleanDatabase = publicProcedure
+  .input(z.string().optional())
+  .mutation(async () => {
+    try {
+      await prisma.location.deleteMany();
 
-      const newVal = {
-        ...rest,
-        Description: concatenatedDescriptionString.length
-          ? concatenatedDescriptionString
-          : undefined,
-      };
+      return { status: "OK" };
+    } catch {
+      return { status: "FAIL" };
+    }
+  });
 
-      if (!acc[val.Location]) {
-        return { ...acc, [val.Location]: [newVal] };
-      } else {
-        return { ...acc, [val.Location]: [...acc[val.Location], newVal] };
-      }
-    }, {} as { [key: string]: WarehouseStorageLocation[] });
+const parseSpreadsheet = publicProcedure
+  .input(z.string().optional())
+  .mutation(async () => {
+    try {
+      const fileContent = parseExcelFile();
 
-    return z;
+      const mappedFileContent = fileContent.map((loc) => {
+        const { Description, Colourway } = loc;
+
+        const concatenatedDescriptionString = [Description, Colourway]
+          .join(" ")
+          .trim();
+
+        const dateParts = loc.Date?.split("/");
+
+        return {
+          ...(!!dateParts && {
+            date: new Date(`${dateParts[1]}-${dateParts[0]}-${dateParts[2]}`),
+          }),
+          description: concatenatedDescriptionString,
+          ...(!!loc.Cartons && { cartons: loc.Cartons }),
+          ...(!!loc.Pieces && { piecesTotal: loc.Pieces }),
+          piecesPer: null,
+          locationName: loc.Location,
+          initials: loc.Initials || "N/A",
+        };
+      });
+
+      await prisma.location.createMany({ data: mappedFileContent });
+
+      return { status: "OK" };
+    } catch {
+      return { status: "FAIL" };
+    }
   });
 
 // Location Events
@@ -47,39 +101,74 @@ const addLocationEventInput = z.object({
   description: z.string(),
 });
 
-const addLocationEvent = publicProcedure
-  .input(addLocationEventInput)
-  .mutation(async ({ input }) => {
-    const { description, target, type } = input;
+// const addLocationEvent = publicProcedure
+//   .input(addLocationEventInput)
+//   .mutation(async ({ input }) => {
+//     const { description, target, type } = input;
 
-    try {
-      await prisma.event.create({
-        data: { description, target, type },
-      });
+//     try {
+//       await prisma.event.create({
+//         data: { description, target, type },
+//       });
 
-      return { status: "OK" };
-    } catch {
-      return { status: "FAIL" };
-    }
-  });
+//       return { status: "OK" };
+//     } catch {
+//       return { status: "FAIL" };
+//     }
+//   });
 
-const getLocationEventHistory = publicProcedure
-  .input(z.string())
-  .mutation(async ({ input }) => {
-    try {
-      const res = await prisma.event.findMany({ where: { target: input } });
+// const getLocationEventHistory = publicProcedure
+//   .input(z.string())
+//   .mutation(async ({ input }) => {
+//     try {
+//       const res = await prisma.event.findMany({ where: { target: input } });
 
-      return { events: res, status: "OK" };
-    } catch {
-      return { events: [], status: "FAIL" };
-    }
-  });
+//       return { events: res, status: "OK" };
+//     } catch {
+//       return { events: [], status: "FAIL" };
+//     }
+//   });
 
 export const warehouseStorageRouter = router({
   // Events
-  addLocationEvent,
-  getLocationEventHistory,
+  // addLocationEvent,
+  // getLocationEventHistory,
 
-  // Location Information
+  // Items
+  addWarehouseStorageItem,
+
+  // Locations
+  cleanDatabase,
   getAllLocations,
+  parseSpreadsheet,
 });
+
+// (async () => {
+//   const fileContent = parseExcelFile();
+
+//   const mappedFileContent = fileContent.map((loc) => {
+//     const { Description, Colourway } = loc;
+
+//     const concatenatedDescriptionString = [Description, Colourway]
+//       .join(" ")
+//       .trim();
+
+//     const dateParts = loc.Date?.split("/");
+
+//     return {
+//       ...(!!dateParts && {
+//         date: new Date(`${dateParts[1]}-${dateParts[0]}-${dateParts[2]}`),
+//       }),
+//       description: concatenatedDescriptionString,
+//       ...(!!loc.Cartons && { cartons: loc.Cartons }),
+//       ...(!!loc.Pieces && { piecesTotal: loc.Pieces }),
+//       piecesPer: null,
+//       locationName: loc.Location,
+//       initials: loc.Initials || "N/A",
+//     };
+//   });
+
+//   console.log(mappedFileContent);
+
+//   await prisma.location.createMany({ data: mappedFileContent });
+// })();

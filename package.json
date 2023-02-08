@@ -15,7 +15,7 @@
   "scripts": {
     "open:all": "yarn open:controllarr & yarn open:inertiion & yarn open:services",
     "open:controllarr": "code ./apps/controllarr",
-    "open:inertiion": "code ./apps/inertiion",
+    "open:inertiion": "code ./apps/inertiion && code ./apps/inertiion-services",
     "open:services": "code ./apps/scratchworks-services",
     "open:components": "code ./packages/comp-lib"
   }

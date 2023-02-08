@@ -6,7 +6,7 @@ import { exit } from "process";
 
 import { appRouter, createContext } from "./trpc";
 
-export type { Event } from "@prisma/client";
+export type { Event, Location } from "@prisma/client";
 export { AppRouter } from "./trpc/rootRouter";
 export * from "./types";
 

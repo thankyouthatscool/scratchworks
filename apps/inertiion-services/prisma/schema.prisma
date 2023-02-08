@@ -16,7 +16,20 @@ enum EventType {
 
 model Event {
   id          String    @id @default(uuid())
-  target      String
   type        EventType
   description String    @default("")
+  location    Location  @relation(fields: [locationId], references: [id])
+  locationId  String
+}
+
+model Location {
+  id           String    @id @default(uuid())
+  events       Event[]
+  locationName String
+  description  String
+  cartons      Int?
+  piecesPer    Int?
+  piecesTotal  Int?
+  date         DateTime?
+  initials     String
 }
