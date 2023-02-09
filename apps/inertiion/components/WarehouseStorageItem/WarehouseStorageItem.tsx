@@ -1,7 +1,7 @@
-import type { Event, Location } from "@scratchworks/inertiion-services";
 import { FC, useCallback, useEffect, useState } from "react";
 import { Button, FlatList, Pressable, Text, View } from "react-native";
 
+import { ButtonWrapper } from "@components/shared";
 import { useAppDispatch, useAppSelector, useToast } from "@hooks";
 import {
   addWarehouseStorageItem as reduxAddWarehouseStorageItem,
@@ -9,6 +9,7 @@ import {
   removeWarehouseStorageItem,
   setSelectedWarehouseStorageLocation,
 } from "@store";
+import type { LocationWithEvents } from "@types";
 import { trpc } from "@utils";
 
 import {
@@ -19,7 +20,6 @@ import {
   LocationItemWrapper,
   LocationItemFormWrapper,
 } from "./Styled";
-import { ButtonWrapper } from "@/screens/WarehouseStorage/Styled";
 
 export const WarehouseStorageItem = () => {
   const dispatch = useAppDispatch();
@@ -28,9 +28,9 @@ export const WarehouseStorageItem = () => {
     useAppSelector(({ warehouse }) => warehouse);
 
   const [isAddMode, setIsAddMode] = useState<boolean>(false);
-  const [locationContent, setLocationContent] = useState<
-    (Location & { events: Event[] })[]
-  >([]);
+  const [locationContent, setLocationContent] = useState<LocationWithEvents[]>(
+    []
+  );
   const [selectedItem, setSelectedItem] = useState<string | null>(null);
 
   // Handlers
@@ -99,7 +99,7 @@ export const WarehouseStorageItem = () => {
 
 interface LocationItemProps {
   index: number;
-  locationData: Location & { events: Event[] };
+  locationData: LocationWithEvents;
   onItemPress: React.Dispatch<React.SetStateAction<string | null>>;
 }
 
@@ -139,9 +139,8 @@ const LocationItemForm: FC<LocationItemFormProps> = ({
 }) => {
   const dispatch = useAppDispatch();
 
-  const { warehouseStorageLocations } = useAppSelector(
-    ({ warehouse }) => warehouse
-  );
+  const { selectedWarehouseStorageLocation, warehouseStorageLocations } =
+    useAppSelector(({ warehouse }) => warehouse);
 
   const { showToast } = useToast();
 
@@ -149,16 +148,34 @@ const LocationItemForm: FC<LocationItemFormProps> = ({
     warehouseStorageLocations.find((loc) => loc.id === itemId)!
   );
 
+  const { mutateAsync: updateWarehouseStorageItem } =
+    trpc.warehouseStorageRouter.editWarehouseStorageItem.useMutation();
+
   // Handlers
-  const handleUpdateItem = useCallback(() => {
+  const handleUpdateItem = useCallback(async () => {
     const { description, initials } = formData;
 
-    if (!!description && !!initials) {
-      dispatch(editWarehouseStorageItem(formData));
+    try {
+      if (!!description && !!initials) {
+        const { status, updateRes } = (await updateWarehouseStorageItem({
+          ...formData,
+          locationName: selectedWarehouseStorageLocation!,
+          cartons: !!formData.cartons ? formData.cartons : 0,
+          date: new Date().toString(),
+          piecesPer: !!formData.piecesPer ? formData.piecesPer : 0,
+          piecesTotal: 0,
+        })) as { status: string; updateRes: LocationWithEvents };
 
-      onClearSelectedItem();
-    } else {
-      showToast({ message: "Invalid input" });
+        if (status !== "OK") throw new Error();
+
+        dispatch(editWarehouseStorageItem(updateRes));
+
+        onClearSelectedItem();
+      } else {
+        showToast({ message: "Invalid input" });
+      }
+    } catch {
+      showToast({});
     }
   }, [formData]);
 
@@ -285,9 +302,7 @@ const AddLocationItemForm: FC<AddLocationItemForm> = ({ onCancel }) => {
       if (status !== "OK") throw new Error();
 
       if (!!newLocation) {
-        const newLoc = newLocation as unknown as Location & {
-          events: Event[];
-        };
+        const newLoc = newLocation as unknown as LocationWithEvents;
 
         dispatch(reduxAddWarehouseStorageItem(newLoc));
       }

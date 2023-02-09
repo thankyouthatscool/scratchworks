@@ -1,9 +1,11 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import type { Event, Location } from "@scratchworks/inertiion-services";
 
+import { LocationWithEvents } from "@types";
+
 type AppState = {
   selectedWarehouseStorageLocation: string | null;
-  warehouseStorageLocations: (Location & { events: Event[] })[];
+  warehouseStorageLocations: LocationWithEvents[];
 };
 
 const initialState: AppState = {
@@ -17,7 +19,7 @@ export const warehouseSlice = createSlice({
   reducers: {
     addWarehouseStorageItem: (
       state,
-      { payload }: PayloadAction<Location & { events: Event[] }>
+      { payload }: PayloadAction<LocationWithEvents>
     ) => {
       console.log(payload);
 
@@ -28,7 +30,7 @@ export const warehouseSlice = createSlice({
     },
     editWarehouseStorageItem: (
       state,
-      { payload }: PayloadAction<Location & { events: Event[] }>
+      { payload }: PayloadAction<LocationWithEvents>
     ) => {
       const targetItem = state.warehouseStorageLocations.find(
         (loc) => loc.id === payload.id
@@ -59,7 +61,7 @@ export const warehouseSlice = createSlice({
     },
     setWarehouseStorageLocations: (
       state,
-      { payload }: PayloadAction<(Location & { events: Event[] })[]>
+      { payload }: PayloadAction<LocationWithEvents[]>
     ) => {
       state.warehouseStorageLocations = payload;
     },

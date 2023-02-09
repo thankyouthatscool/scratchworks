@@ -1,10 +1,13 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import type { Event, Location } from "@scratchworks/inertiion-services";
 
-type WarehouseLocations = Location & { events: Event[] };
+import { LocationWithEvents } from "@types";
+
+const UNIQUE_WAREHOUSE_LOCATIONS_KEY = "UNIQUE_WAREHOUSE_LOCATIONS";
+const WAREHOUSE_LOCATIONS_KEY = "WAREHOUSE_LOCATIONS";
 
 export const setLSWarehouseStorageLocations = async (
-  locationsData: WarehouseLocations[]
+  locationsData: LocationWithEvents[]
 ) => {
   await AsyncStorage.setItem(
     "warehouseLocations",
@@ -38,9 +41,11 @@ export const getLSWarehouseStorageLocations = async () => {
 
   if (!JSON.parse(resString).length) return null;
 
-  return JSON.parse(resString) as WarehouseLocations[];
+  return JSON.parse(resString) as LocationWithEvents[];
 };
 
 export const clearLSWarehouseStorageLocations = async () => {
   await AsyncStorage.removeItem("warehouseLocations");
+
+  await AsyncStorage.removeItem("uniqueWarehouseLocations");
 };

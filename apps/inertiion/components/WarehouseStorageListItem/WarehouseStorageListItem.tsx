@@ -1,4 +1,3 @@
-import type { Event, Location } from "@scratchworks/inertiion-services";
 import { useEffect, useState } from "react";
 import { Pressable, Text, View } from "react-native";
 
@@ -6,6 +5,7 @@ import { useAppDispatch, useAppSelector } from "@hooks";
 import { setSelectedWarehouseStorageLocation } from "@store";
 
 import { ListItemHeading } from "./Styled";
+import { LocationWithEvents } from "@/types";
 
 export const WarehouseStorageListItem = ({
   index,
@@ -22,7 +22,7 @@ export const WarehouseStorageListItem = ({
 
   const [isPressed, setIsPressed] = useState<boolean>(false);
   const [targetLocationData, setTargetLocationData] = useState<
-    (Location & { events: Event[] })[]
+    LocationWithEvents[]
   >([]);
 
   useEffect(() => {

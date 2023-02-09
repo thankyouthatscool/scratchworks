@@ -1,5 +1,4 @@
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
-import { Event, Location } from "@scratchworks/inertiion-services";
 import * as Haptics from "expo-haptics";
 import { FC, useEffect, useState } from "react";
 import { Button, FlatList, Modal, Pressable, Text, View } from "react-native";
@@ -19,10 +18,14 @@ import {
 
 import {
   ButtonWrapper,
+  ModalSectionWrapper,
+  ModalWrapper,
+  OuterModalWrapper,
   SearchBarWrapper,
   SearchTextInput,
   WarehouseStorageWrapper,
 } from "./Styled";
+import { LocationWithEvents } from "@/types";
 
 export const WarehouseStorage = () => {
   // Hooks
@@ -48,10 +51,6 @@ export const WarehouseStorage = () => {
 
   const { mutateAsync: getAllLocations } =
     trpc.warehouseStorageRouter.getAllLocations.useMutation();
-  const { mutateAsync: cleanDatabase } =
-    trpc.warehouseStorageRouter.cleanDatabase.useMutation();
-  const { mutateAsync: parseSpreadsheet } =
-    trpc.warehouseStorageRouter.parseSpreadsheet.useMutation();
 
   const { showToast } = useToast();
 
@@ -73,15 +72,13 @@ export const WarehouseStorage = () => {
       );
 
       const [res, uniqueLocations] = allPromiseRes as [
-        res: (Location & { events: Event[] })[],
+        res: LocationWithEvents[],
         uniqueLocations: string[]
       ];
 
-      setUniqueWarehouseLocations(() => uniqueLocations || []);
-
       if (!res) {
         const { locations, status } = (await getAllLocations()) as unknown as {
-          locations: (Location & { events: Event[] })[];
+          locations: LocationWithEvents[];
           status: string;
         };
 
@@ -96,8 +93,12 @@ export const WarehouseStorage = () => {
         await setLSWarehouseStorageLocations(locations);
 
         dispatch(setWarehouseStorageLocations(locations));
+
+        setUniqueWarehouseLocations(uniqLocs);
       } else {
         dispatch(setWarehouseStorageLocations(res));
+
+        setUniqueWarehouseLocations(() => uniqueLocations || []);
       }
     } catch {
       showToast({});
@@ -108,14 +109,6 @@ export const WarehouseStorage = () => {
 
   const handleSetSearchTerm = (searchTerm: string) => {
     dispatch(setSearchTerm(searchTerm));
-  };
-
-  const handleCleanDB = async () => {
-    await cleanDatabase();
-  };
-
-  const handleParseSpreadsheet = async () => {
-    await parseSpreadsheet();
   };
 
   const handleClearSearchTerm = async () => {
@@ -197,6 +190,20 @@ const ClearPressable: FC<ClearPressableProps> = ({
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [isPressed, setIsPressed] = useState<boolean>(false);
 
+  const { mutateAsync: cleanDatabase } =
+    trpc.warehouseStorageRouter.cleanDatabase.useMutation();
+  const { mutateAsync: parseSpreadsheet } =
+    trpc.warehouseStorageRouter.parseSpreadsheet.useMutation();
+
+  // Handlers
+  const handleCleanDatabase = async () => {
+    await cleanDatabase();
+  };
+
+  const handleParseSpreadsheet = async () => {
+    await parseSpreadsheet();
+  };
+
   return (
     <Pressable
       onPressIn={() => setIsPressed(() => true)}
@@ -212,7 +219,6 @@ const ClearPressable: FC<ClearPressableProps> = ({
       <Modal
         animationType="slide"
         hardwareAccelerated
-        style={{ alignItems: "center", justifyContent: "center" }}
         transparent
         visible={isModalOpen}
       >
@@ -221,35 +227,46 @@ const ClearPressable: FC<ClearPressableProps> = ({
             setIsModalOpen(() => false);
           }}
         >
-          <View
-            style={{
-              alignItems: "center",
-              height: "100%",
-              justifyContent: "center",
-            }}
-          >
+          <OuterModalWrapper>
             <Pressable>
-              <View
-                style={{
-                  backgroundColor: "white",
-                  borderRadius: 5,
-                  borderWidth: 2,
-                  borderColor: "red",
-                  padding: 8,
-                }}
-              >
-                <View style={{ flexDirection: "row" }}>
-                  <ButtonWrapper>
-                    <Button
-                      onPress={() => setIsModalOpen(() => false)}
-                      title="Cancel"
-                    />
-                  </ButtonWrapper>
-                  <Button color="red" onPress={handleDeepClean} title="deep" />
+              <ModalWrapper>
+                <Text style={{ fontSize: 16 * 1.25 }}>Local Storage</Text>
+                <ModalSectionWrapper>
+                  <Text>Clear LS</Text>
+                  <Button
+                    color="red"
+                    onPress={handleDeepClean}
+                    title="Clear LS"
+                  />
+                </ModalSectionWrapper>
+                <Text style={{ fontSize: 16 * 1.25 }}>Database</Text>
+                <ModalSectionWrapper>
+                  <Text>Clear DB</Text>
+                  <Button
+                    color="red"
+                    onPress={handleCleanDatabase}
+                    title="Clear DB"
+                  />
+                </ModalSectionWrapper>
+                <Text style={{ fontSize: 16 * 1.25 }}>Spreadsheet</Text>
+                <ModalSectionWrapper>
+                  <Text>Parse spreadsheet</Text>
+                  <Button onPress={handleParseSpreadsheet} title="Parse" />
+                </ModalSectionWrapper>
+                <View
+                  style={{
+                    marginTop: 8,
+                    flexDirection: "row",
+                  }}
+                >
+                  <Button
+                    onPress={() => setIsModalOpen(() => false)}
+                    title="Cancel"
+                  />
                 </View>
-              </View>
+              </ModalWrapper>
             </Pressable>
-          </View>
+          </OuterModalWrapper>
         </Pressable>
       </Modal>
     </Pressable>

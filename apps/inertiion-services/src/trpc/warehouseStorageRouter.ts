@@ -4,7 +4,8 @@ import { publicProcedure, router } from ".";
 import { prisma } from "../db";
 import { parseExcelFile } from "../utils";
 
-const addWarehouseStorageItemInput = z.object({
+const warehouseStorageItemInput = z.object({
+  id: z.string().optional(),
   locationName: z.string(),
   description: z.string(),
   cartons: z.number().optional(),
@@ -16,7 +17,7 @@ const addWarehouseStorageItemInput = z.object({
 
 // Items
 const addWarehouseStorageItem = publicProcedure
-  .input(addWarehouseStorageItemInput)
+  .input(warehouseStorageItemInput)
   .mutation(async ({ input }) => {
     try {
       const res = await prisma.location.create({
@@ -30,6 +31,26 @@ const addWarehouseStorageItem = publicProcedure
       return { newLocation: res, status: "OK" };
     } catch {
       return { newLocation: null, status: "FAIL" };
+    }
+  });
+
+const editWarehouseStorageItem = publicProcedure
+  .input(warehouseStorageItemInput)
+  .mutation(async ({ input }) => {
+    const { id, ...data } = input;
+
+    try {
+      const res = await prisma.location.update({
+        where: { id },
+        data: { ...data, date: data.date ? new Date(data.date) : new Date() },
+        include: { events: true },
+      });
+
+      return { status: "OK", updateRes: res };
+    } catch (e) {
+      console.log(e);
+
+      return { status: "FAIL", updateRes: null };
     }
   });
 
@@ -136,6 +157,7 @@ export const warehouseStorageRouter = router({
 
   // Items
   addWarehouseStorageItem,
+  editWarehouseStorageItem,
 
   // Locations
   cleanDatabase,
