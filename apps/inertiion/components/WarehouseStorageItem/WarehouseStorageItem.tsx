@@ -1,7 +1,11 @@
 import { FC, useCallback, useEffect, useState } from "react";
-import { Button, FlatList, Pressable, Text, View } from "react-native";
+import { Button, FlatList, Modal, Pressable, Text, View } from "react-native";
 
-import { ButtonWrapper } from "@components/shared";
+import {
+  ButtonWrapper,
+  ModalWrapper,
+  OuterModalWrapper,
+} from "@components/shared";
 import { useAppDispatch, useAppSelector, useToast } from "@hooks";
 import {
   addWarehouseStorageItem as reduxAddWarehouseStorageItem,
@@ -110,6 +114,7 @@ const LocationItem: FC<LocationItemProps> = ({
 }) => {
   const dispatch = useAppDispatch();
 
+  const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
   const [isPressed, setIsPressed] = useState<boolean>(false);
 
   return (
@@ -118,12 +123,69 @@ const LocationItem: FC<LocationItemProps> = ({
       onPressOut={() => setIsPressed(() => false)}
       onPress={() => onItemPress(locationData.id)}
       onLongPress={() => {
-        dispatch(removeWarehouseStorageItem(locationData.id));
+        setIsModalVisible(() => true);
       }}
     >
       <LocationItemWrapper index={index} isPressed={isPressed}>
         <Text>{locationData.description}</Text>
       </LocationItemWrapper>
+      <Modal
+        animationType="slide"
+        hardwareAccelerated
+        transparent
+        visible={isModalVisible}
+      >
+        <Pressable onPress={() => setIsModalVisible(() => false)}>
+          <OuterModalWrapper>
+            <Pressable>
+              <ModalWrapper>
+                <View style={{ flexDirection: "row", flexWrap: "wrap" }}>
+                  <Text style={{ fontSize: 16 * 1.5 }}>Delete </Text>
+                  <Text
+                    style={{
+                      color: "red",
+                      fontSize: 16 * 1.5,
+                      fontWeight: "500",
+                    }}
+                  >
+                    {locationData.description}
+                  </Text>
+                  <Text style={{ fontSize: 16 * 1.5 }}>?</Text>
+                </View>
+                <Text>Cartons: {locationData.cartons}</Text>
+                <Text>Pieces: {locationData.piecesTotal}</Text>
+                <Text>
+                  Date:{" "}
+                  {!!locationData.date
+                    ? new Date(locationData.date).toDateString()
+                    : ""}
+                </Text>
+                <View
+                  style={{
+                    flexDirection: "row",
+                    justifyContent: "flex-end",
+                    marginTop: 8,
+                  }}
+                >
+                  <ButtonWrapper>
+                    <Button
+                      onPress={() => setIsModalVisible(() => false)}
+                      title="Cancel"
+                    />
+                  </ButtonWrapper>
+                  <Button
+                    color="red"
+                    onPress={() => {
+                      dispatch(removeWarehouseStorageItem(locationData.id));
+                    }}
+                    title="Delete"
+                  />
+                </View>
+              </ModalWrapper>
+            </Pressable>
+          </OuterModalWrapper>
+        </Pressable>
+      </Modal>
     </Pressable>
   );
 };
@@ -163,7 +225,7 @@ const LocationItemForm: FC<LocationItemFormProps> = ({
           cartons: !!formData.cartons ? formData.cartons : 0,
           date: new Date().toString(),
           piecesPer: !!formData.piecesPer ? formData.piecesPer : 0,
-          piecesTotal: 0,
+          piecesTotal: !!formData.piecesTotal ? formData.piecesTotal : 0,
         })) as { status: string; updateRes: LocationWithEvents };
 
         if (status !== "OK") throw new Error();
@@ -212,6 +274,12 @@ const LocationItemForm: FC<LocationItemFormProps> = ({
         <LocationItemFormTextInput
           defaultValue={formData?.piecesTotal?.toString() || "0"}
           keyboardType="numeric"
+          onChangeText={(e) =>
+            setFormData((fData) => ({
+              ...fData,
+              piecesTotal: !!e ? parseInt(e) : 0,
+            }))
+          }
           placeholder="Pieces"
         />
         <LocationItemFormTextInput

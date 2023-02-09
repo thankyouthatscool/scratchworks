@@ -55,5 +55,6 @@ const styles = StyleSheet.create({
 // TODO: Haptics.
 // TODO: Delete confirmation.
 // TODO: Show loading states
+// TODO: Save to db when an item is deleted.
 
 // DONE: Some bullshit with the array when clearing all items from a location.

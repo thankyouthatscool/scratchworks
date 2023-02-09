@@ -54,6 +54,20 @@ const editWarehouseStorageItem = publicProcedure
     }
   });
 
+const deleteWarehouseStorageItem = publicProcedure
+  .input(z.string())
+  .mutation(async ({ input }) => {
+    try {
+      await prisma.location.delete({
+        where: { id: input },
+      });
+
+      return { status: "OK" };
+    } catch {
+      return { status: "FAIL" };
+    }
+  });
+
 // Locations
 const getAllLocations = publicProcedure
   .input(z.string().optional())
@@ -158,6 +172,7 @@ export const warehouseStorageRouter = router({
   // Items
   addWarehouseStorageItem,
   editWarehouseStorageItem,
+  deleteWarehouseStorageItem,
 
   // Locations
   cleanDatabase,
