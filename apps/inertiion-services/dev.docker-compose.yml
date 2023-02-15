@@ -9,7 +9,6 @@ services:
       - POSTGRES_PASSWORD=postgres
     ports:
       - "5432:5432"
-      - "5000:5000"
     volumes:
       - db:/var/lib/postgresql/data
   pgadmin:
