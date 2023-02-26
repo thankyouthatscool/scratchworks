@@ -2,11 +2,7 @@ import { createDrawerNavigator } from "@react-navigation/drawer";
 
 import { HomeScreen } from "@screens/HomeScreen";
 import { SettingsScreen } from "@screens/SettingsScreen";
-
-type RootDrawerNavigatorProps = {
-  Home: undefined;
-  Settings: undefined;
-};
+import type { RootDrawerNavigatorProps } from "@types";
 
 const RootDrawer = createDrawerNavigator<RootDrawerNavigatorProps>();
 
