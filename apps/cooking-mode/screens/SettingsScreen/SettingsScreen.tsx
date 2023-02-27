@@ -1,12 +1,33 @@
 import { ScreenWrapper } from "@components/shared/ScreenWrapper";
 import { Picker } from "@react-native-picker/picker";
-import { useRef, useState } from "react";
+import { useRef } from "react";
 import { Pressable, Text, View } from "react-native";
 
-export const SettingsScreen = () => {
-  const [selectedTempUnit, setSelectedTempUnit] = useState("celsius");
+import { useAppDispatch, useAppSelector } from "@hooks";
+import { setAppSettings } from "@store";
+import { TempUnits } from "@types";
+import { setLocalStorageSettings } from "@utils";
 
-  const pickerRef = useRef<Picker<string> | null>(null);
+export const SettingsScreen = () => {
+  const dispatch = useAppDispatch();
+
+  const {
+    appSettings: { tempUnit },
+  } = useAppSelector(({ app }) => app);
+
+  const pickerRef = useRef<Picker<TempUnits> | null>(null);
+
+  const handleChangeTempUnit = async (newTempUnit: TempUnits) => {
+    dispatch(setAppSettings({ tempUnit: newTempUnit }));
+
+    try {
+      const res = await setLocalStorageSettings({ tempUnit: newTempUnit });
+
+      if (!res) throw new Error();
+    } catch (err) {
+      console.log(err);
+    }
+  };
 
   return (
     <ScreenWrapper isPadded>
@@ -41,22 +62,22 @@ export const SettingsScreen = () => {
                 padding: 8,
               }}
             >
-              <Text style={{ fontWeight: "500" }}>{selectedTempUnit}</Text>
+              <Text style={{ fontWeight: "500" }}>{tempUnit}</Text>
             </View>
           </Pressable>
         </View>
         <Picker
-          onValueChange={(selectedItem) => {
-            setSelectedTempUnit(() => selectedItem);
+          onValueChange={(selectedItem: TempUnits) => {
+            handleChangeTempUnit(selectedItem);
           }}
           prompt="Temperature Units"
           ref={pickerRef}
-          selectedValue={selectedTempUnit}
+          selectedValue={tempUnit}
           style={{ display: "none" }}
         >
-          <Picker.Item label="Celsius" value="C" />
-          <Picker.Item label="Fahrenheit" value="F" />
-          <Picker.Item label="Kelvin" value="K" />
+          <Picker.Item label="Celsius" value="celsius" />
+          <Picker.Item label="Fahrenheit" value="fahrenheit" />
+          <Picker.Item label="Kelvin" value="kelvin" />
         </Picker>
       </View>
     </ScreenWrapper>
