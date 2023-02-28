@@ -1,8 +1,8 @@
-import { ScreenWrapper } from "@components/shared/ScreenWrapper";
 import { Picker } from "@react-native-picker/picker";
 import { useRef } from "react";
 import { Pressable, Text, View } from "react-native";
 
+import { ScreenWrapper } from "@components/shared/ScreenWrapper";
 import { useAppDispatch, useAppSelector } from "@hooks";
 import { setAppSettings } from "@store";
 import { TempUnits } from "@types";
@@ -30,7 +30,7 @@ export const SettingsScreen = () => {
   };
 
   return (
-    <ScreenWrapper isPadded>
+    <ScreenWrapper>
       <Text style={{ fontWeight: "700", fontSize: 16 * 2 }}>Settings</Text>
       <Text style={{ fontWeight: "600", fontSize: 16 * 1.5 }}>General</Text>
       <View
