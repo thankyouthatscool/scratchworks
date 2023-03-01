@@ -51,11 +51,56 @@ export const TagSelectorComponent = () => {
     }
   }, [isLoading]);
 
+  const sortTags = useCallback(
+    (tags: string[]) => {
+      if (!selectedTags.length) {
+        return tags;
+      }
+
+      const possibleRecipes = recipes.filter((recipe) =>
+        selectedTags.every((tag) => recipe.tags.includes(tag))
+      );
+
+      const availableTags = Array.from(
+        new Set(
+          possibleRecipes.reduce(
+            (acc, { tags }) => [...acc, ...tags],
+            [] as string[]
+          )
+        )
+      );
+
+      const remTags = availableTags.filter(
+        (tag) => !selectedTags.includes(tag)
+      );
+
+      return [...selectedTags, ...remTags];
+    },
+    [selectedTags]
+  );
+
   return (
     <ComponentWrapper>
-      {!isLoading && (
+      {isLoading ? (
         <FlatList
-          data={tags}
+          data={[""]}
+          renderItem={() => {
+            return (
+              <TagComponentWrapper
+                availableTags={[]}
+                index={0}
+                item={"s"}
+                selectedTags={[]}
+                tags={[]}
+              >
+                <Text style={{ fontSize: 12 }}>Loading...</Text>
+              </TagComponentWrapper>
+            );
+          }}
+        />
+      ) : (
+        <FlatList
+          data={sortTags(tags)}
           horizontal
           ref={flatListRef}
           renderItem={({ item, index }) => (
