@@ -17,6 +17,7 @@ export const TagSelectorComponent = () => {
       )
     ).sort((a, b) => a.localeCompare(b))
   );
+
   const [availableTags, setAvailableTags] = useState<string[]>(tags);
   const [isLoading, setIsLoading] = useState(false);
 

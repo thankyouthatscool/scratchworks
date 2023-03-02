@@ -1,14 +1,9 @@
 import { FC } from "react";
-import { Button, Pressable, Text, View } from "react-native";
 
-import type { DrawerNavigationProp } from "@react-navigation/drawer";
-
+import { RecipeListComponent } from "@components/RecipeListComponent";
 import { ScreenWrapper } from "@components/shared/ScreenWrapper";
-import { useAppDispatch, useAppSelector } from "@hooks";
-import { setSelectedRecipe } from "@store";
-import { HomeScreenNavigationProps, RootDrawerNavigatorProps } from "@types";
-
 import { TagSelectorComponent } from "@components/TagSelectorComponent";
+import { HomeScreenNavigationProps } from "@types";
 
 export const HomeScreen: FC<HomeScreenNavigationProps> = ({ navigation }) => {
   return (
@@ -16,43 +11,5 @@ export const HomeScreen: FC<HomeScreenNavigationProps> = ({ navigation }) => {
       <TagSelectorComponent />
       <RecipeListComponent nav={navigation} />
     </ScreenWrapper>
-  );
-};
-
-interface RecipeListComponentProps {
-  nav: DrawerNavigationProp<RootDrawerNavigatorProps, "Home">;
-}
-
-export const RecipeListComponent: FC<RecipeListComponentProps> = ({ nav }) => {
-  const dispatch = useAppDispatch();
-
-  const { recipes, selectedTags } = useAppSelector(({ recipes }) => recipes);
-
-  return (
-    <View>
-      {recipes
-        .filter((recipe) =>
-          selectedTags.every((tag) => recipe.tags.includes(tag))
-        )
-        .map((recipe) => (
-          <Pressable
-            key={recipe.id}
-            onPress={() => {
-              dispatch(setSelectedRecipe(recipe.id));
-
-              nav.navigate("Recipe");
-            }}
-          >
-            <View>
-              <Text>{recipe.name}</Text>
-              {recipe.tags.map((tag, idx) => (
-                <Text key={idx} style={{ color: "gray", fontSize: 10 }}>
-                  {tag}
-                </Text>
-              ))}
-            </View>
-          </Pressable>
-        ))}
-    </View>
   );
 };
