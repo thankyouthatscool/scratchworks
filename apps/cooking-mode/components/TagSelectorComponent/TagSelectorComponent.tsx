@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { FlatList, Pressable, Text } from "react-native";
+import { FlatList, Pressable, Text, View } from "react-native";
 
 import { useAppDispatch, useAppSelector } from "@hooks";
 import { setSelectedTags } from "@store";
@@ -83,22 +83,7 @@ export const TagSelectorComponent = () => {
   return (
     <ComponentWrapper>
       {isLoading ? (
-        <FlatList
-          data={[""]}
-          renderItem={() => {
-            return (
-              <TagComponentWrapper
-                availableTags={[]}
-                index={0}
-                item={"s"}
-                selectedTags={[]}
-                tags={[]}
-              >
-                <Text style={{ fontSize: 12 }}>Loading...</Text>
-              </TagComponentWrapper>
-            );
-          }}
-        />
+        <PlaceholderComponent />
       ) : (
         <FlatList
           data={sortTags(tags)}
@@ -108,11 +93,6 @@ export const TagSelectorComponent = () => {
             <Pressable
               disabled={!availableTags.includes(item)}
               onPress={() => {
-                flatListRef.current?.scrollToIndex({
-                  index: 0,
-                  animated: true,
-                });
-
                 dispatch(
                   setSelectedTags(
                     selectedTags.includes(item)
@@ -138,5 +118,15 @@ export const TagSelectorComponent = () => {
         />
       )}
     </ComponentWrapper>
+  );
+};
+
+const PlaceholderComponent = () => {
+  return (
+    <View
+      style={{ borderColor: "white", borderWidth: 2, padding: 8, width: 0 }}
+    >
+      <Text style={{ fontSize: 12 }} />
+    </View>
   );
 };

@@ -27,7 +27,12 @@ export const RecipeListComponent: FC<RecipeListComponentProps> = ({ nav }) => {
           selectedTags.every((tag) => recipe.tags.includes(tag))
         )
         .map((recipe, index) => (
-          <RecipeCardComponent index={index} nav={nav} recipe={recipe} />
+          <RecipeCardComponent
+            index={index}
+            key={recipe.id}
+            nav={nav}
+            recipe={recipe}
+          />
         ))}
     </RootWrapper>
   );
@@ -59,7 +64,7 @@ export const RecipeCardComponent: FC<{
         <Text>{recipe.name}</Text>
         <RecipeTagsComponentWrapper>
           {recipe.tags.map((tag) => (
-            <TagWrapper key={tag}>
+            <TagWrapper isSelected={selectedTags.includes(tag)} key={tag}>
               <TagWrapperText isSelected={selectedTags.includes(tag)}>
                 {tag}
               </TagWrapperText>

@@ -30,11 +30,38 @@ export const RecipeCardComponentWrapper: FC<
 export const RecipeTagsComponentWrapper: FC<PropsWithChildren> = ({
   children,
 }) => {
-  return <View style={{ flexDirection: "row" }}>{children}</View>;
+  return (
+    <View
+      style={{
+        flexDirection: "row",
+        flexWrap: "wrap",
+      }}
+    >
+      {children}
+    </View>
+  );
 };
 
-export const TagWrapper: FC<PropsWithChildren> = ({ children }) => {
-  return <View>{children}</View>;
+export const TagWrapper: FC<PropsWithChildren & { isSelected: boolean }> = ({
+  children,
+  isSelected,
+}) => {
+  return (
+    <View
+      style={{
+        padding: 2,
+        marginRight: 4,
+        borderRadius: 5,
+        marginBottom: 4,
+        backgroundColor: "white",
+        elevation: 2,
+        borderWidth: 1,
+        borderColor: !!isSelected ? "green" : "white",
+      }}
+    >
+      {children}
+    </View>
+  );
 };
 
 export const TagWrapperText: FC<
@@ -47,7 +74,7 @@ export const TagWrapperText: FC<
       fontWeight: `${!!isSelected ? 5 : 4}00`,
     }}
   >
-    {children}{" "}
+    {children}
   </Text>
 );
 

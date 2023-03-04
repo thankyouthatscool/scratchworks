@@ -46,7 +46,7 @@ const initialState: RecipesState = {
       id: "47641fda-0b8a-4beb-be54-0aa71498b47b",
       name: "Test Recipe 5",
       steps: [],
-      tags: ["vegetables", "narsty", "baked"],
+      tags: ["vegetables", "narsty", "baked", "test 1", "test 2", "test 3"],
     },
     {
       id: "0d427b8a-eaa2-4135-bdc8-3e620ebc6838",
