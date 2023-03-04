@@ -1,9 +1,14 @@
 import { FC, useCallback, useEffect, useState } from "react";
-import { Button, Pressable, Text, TextInput, View } from "react-native";
+import { Button, Text, ToastAndroid, View } from "react-native";
 
 import { useAppDispatch, useAppSelector } from "@hooks";
 import { updateRecipe } from "@store";
-import { RootWrapper } from "./Styled";
+import {
+  HeaderWrapper,
+  MainCardWrapper,
+  RootWrapper,
+  StyledTextInput,
+} from "./Styled";
 import { Recipe, RecipeScreenNavigationProps } from "@types";
 import { updateLocalStorageRecipe } from "@utils";
 
@@ -45,6 +50,8 @@ export const RecipeScreen: FC<RecipeScreenNavigationProps> = ({
         description: recipeStepsText[idx],
       }))!,
     });
+
+    ToastAndroid.show("Recipe updated", ToastAndroid.SHORT);
   }, [recipeDescription, recipeStepsText, targetRecipe]);
 
   useEffect(() => {
@@ -69,22 +76,8 @@ export const RecipeScreen: FC<RecipeScreenNavigationProps> = ({
 
   return (
     <RootWrapper>
-      <View
-        style={{
-          backgroundColor: "white",
-          borderRadius: 5,
-          elevation: 2,
-          margin: 8,
-          padding: 8,
-        }}
-      >
-        <View
-          style={{
-            alignItems: "center",
-            flexDirection: "row",
-            justifyContent: "space-between",
-          }}
-        >
+      <MainCardWrapper>
+        <HeaderWrapper>
           <Text style={{ fontWeight: "500", fontSize: 16 }}>
             {targetRecipe?.name}
           </Text>
@@ -98,9 +91,9 @@ export const RecipeScreen: FC<RecipeScreenNavigationProps> = ({
             }}
             title={!!isEditMode ? "Save" : "Edit"}
           />
-        </View>
+        </HeaderWrapper>
         <Text>Ingredients - Basic </Text>
-        <TextInput
+        <StyledTextInput
           defaultValue={recipeDescription}
           editable={isEditMode}
           multiline
@@ -109,7 +102,6 @@ export const RecipeScreen: FC<RecipeScreenNavigationProps> = ({
             setRecipeDescription(() => newDescription)
           }
           placeholder="Recipe Description"
-          style={{ color: "black" }}
           textAlignVertical="top"
         />
         <Text>Steps - {targetRecipe?.steps.length}</Text>
@@ -119,7 +111,7 @@ export const RecipeScreen: FC<RecipeScreenNavigationProps> = ({
             style={{ alignItems: "center", flexDirection: "row" }}
           >
             <Text>{idx + 1}: </Text>
-            <TextInput
+            <StyledTextInput
               defaultValue={text}
               editable={isEditMode}
               onChangeText={(newText) => {
@@ -129,7 +121,6 @@ export const RecipeScreen: FC<RecipeScreenNavigationProps> = ({
                   ...data.slice(idx + 1),
                 ]);
               }}
-              style={{ color: "black" }}
             />
           </View>
         ))}
@@ -138,7 +129,7 @@ export const RecipeScreen: FC<RecipeScreenNavigationProps> = ({
             <Button title="Start" />
           </View>
         )}
-      </View>
+      </MainCardWrapper>
     </RootWrapper>
   );
 };
