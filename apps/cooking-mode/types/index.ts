@@ -39,5 +39,6 @@ export type Recipe = {
   description?: string;
   name: string;
   steps: RecipeStep[];
+  reactions: string[];
   tags: string[];
 };

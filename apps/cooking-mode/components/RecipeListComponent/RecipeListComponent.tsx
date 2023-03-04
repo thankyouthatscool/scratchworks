@@ -1,6 +1,6 @@
 import type { DrawerNavigationProp } from "@react-navigation/drawer";
 import { FC, useRef, useState } from "react";
-import { Pressable, Text, View } from "react-native";
+import { Dimensions, Pressable, Text, View } from "react-native";
 
 import { useAppDispatch, useAppSelector } from "@hooks";
 import { setSelectedRecipe } from "@store";
@@ -17,23 +17,54 @@ interface RecipeListComponentProps {
   nav: DrawerNavigationProp<RootDrawerNavigatorProps, "Home">;
 }
 
+const { width } = Dimensions.get("screen");
+
 export const RecipeListComponent: FC<RecipeListComponentProps> = ({ nav }) => {
   const { recipes, selectedTags } = useAppSelector(({ recipes }) => recipes);
 
   return (
     <RootWrapper>
-      {recipes
-        .filter((recipe) =>
-          selectedTags.every((tag) => recipe.tags.includes(tag))
-        )
-        .map((recipe, index) => (
-          <RecipeCardComponent
-            index={index}
-            key={recipe.id}
-            nav={nav}
-            recipe={recipe}
-          />
-        ))}
+      <View
+        style={{
+          marginRight: 4,
+          width: width / 2 - 8 - 2,
+          flex: 1,
+        }}
+      >
+        {recipes
+          .filter((recipe) =>
+            selectedTags.every((tag) => recipe.tags.includes(tag))
+          )
+          .filter((_, idx) => !(idx % 2))
+          .map((recipe, idx) => (
+            <RecipeCardComponent
+              index={idx}
+              key={recipe.id}
+              nav={nav}
+              recipe={recipe}
+            />
+          ))}
+      </View>
+      <View
+        style={{
+          width: width / 2 - 8 - 2,
+          flex: 1,
+        }}
+      >
+        {recipes
+          .filter((recipe) =>
+            selectedTags.every((tag) => recipe.tags.includes(tag))
+          )
+          .filter((_, idx) => !!(idx % 2))
+          .map((recipe, idx) => (
+            <RecipeCardComponent
+              index={idx}
+              key={recipe.id}
+              nav={nav}
+              recipe={recipe}
+            />
+          ))}
+      </View>
     </RootWrapper>
   );
 };
@@ -65,7 +96,7 @@ export const RecipeCardComponent: FC<{
     >
       <RecipeCardComponentWrapper index={index} pressedIn={isPressedIn}>
         <View>
-          <Text>{recipe.name}</Text>
+          <Text style={{ fontWeight: "500" }}>{recipe.name}</Text>
           <RecipeTagsComponentWrapper>
             {recipe.tags.map((tag) => (
               <TagWrapper isSelected={selectedTags.includes(tag)} key={tag}>
@@ -75,6 +106,11 @@ export const RecipeCardComponent: FC<{
               </TagWrapper>
             ))}
           </RecipeTagsComponentWrapper>
+          {recipe.description && (
+            <Text style={{ color: "grey", fontSize: 8 }}>
+              {recipe.description}
+            </Text>
+          )}
         </View>
         <View
           style={{
@@ -101,7 +137,9 @@ export const RecipeCardComponent: FC<{
               </Text>
             )}
           </View>
-          <Text>😊👌💩</Text>
+          {!!recipe.reactions.length && (
+            <Text>{recipe.reactions.join("")}</Text>
+          )}
         </View>
       </RecipeCardComponentWrapper>
     </Pressable>

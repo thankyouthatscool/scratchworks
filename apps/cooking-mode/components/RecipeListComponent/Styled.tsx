@@ -16,16 +16,9 @@ export const RecipeCardComponentWrapper: FC<
         backgroundColor: "white",
         borderRadius: 5,
         elevation: !!pressedIn ? 0 : 2,
-        marginBottom: 4,
-        marginRight: !(index % 2) ? 4 : 0,
-        padding: 4,
-        width: width / 2 - 8 - 2,
-
-        // flex: 1,
-
-        // height: 200,
-
         justifyContent: "space-between",
+        marginBottom: 4,
+        padding: 4,
       }}
     >
       {children}
