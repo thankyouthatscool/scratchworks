@@ -31,6 +31,7 @@ type RecipeStep = {
   duration: number;
   sub?: boolean;
   id: string;
+  type: "prep" | "cook";
 };
 
 export type Recipe = {

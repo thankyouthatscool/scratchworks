@@ -20,6 +20,12 @@ export const RecipeCardComponentWrapper: FC<
         marginRight: !(index % 2) ? 4 : 0,
         padding: 4,
         width: width / 2 - 8 - 2,
+
+        // flex: 1,
+
+        // height: 200,
+
+        justifyContent: "space-between",
       }}
     >
       {children}

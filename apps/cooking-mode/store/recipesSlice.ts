@@ -17,9 +17,16 @@ const initialState: RecipesState = {
       name: "Test Recipe 1",
       steps: [
         {
+          description: "Prep step",
+          duration: 2,
+          id: "528a7875-ecbe-4f88-8481-d56a6cd1b3e0",
+          type: "prep",
+        },
+        {
           description: "This is a test step",
           duration: 10,
           id: "528a7875-ecbe-4f88-8481-d56a6c11b3e0",
+          type: "cook",
         },
       ],
       tags: ["air fryer", "vegetables"],
@@ -53,6 +60,18 @@ const initialState: RecipesState = {
       name: "Test Recipe 6",
       steps: [],
       tags: ["baked", "indulge"],
+    },
+    {
+      id: "0d427b8a-eaa2-4135-bdc8-3e620ebc6839",
+      name: "Test Recipe 7",
+      steps: [],
+      tags: ["baked", "indulge"],
+    },
+    {
+      id: "0d427b8a-eaa2-4135-bdc8-3e620ebc6840",
+      name: "Test Recipe 8",
+      steps: [],
+      tags: ["baked", "indulge", "go fuck yourself in the ass"],
     },
   ],
   selectedRecipe: null,

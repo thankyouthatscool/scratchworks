@@ -124,7 +124,14 @@ export const TagSelectorComponent = () => {
 const PlaceholderComponent = () => {
   return (
     <View
-      style={{ borderColor: "white", borderWidth: 2, padding: 8, width: 0 }}
+      style={{
+        borderColor: "white",
+        borderWidth: 2,
+        marginTop: 2,
+        marginBottom: 4,
+        padding: 8,
+        width: 0,
+      }}
     >
       <Text style={{ fontSize: 12 }} />
     </View>

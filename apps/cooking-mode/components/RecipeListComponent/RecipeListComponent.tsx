@@ -1,6 +1,6 @@
 import type { DrawerNavigationProp } from "@react-navigation/drawer";
-import { FC, useState } from "react";
-import { Pressable, Text } from "react-native";
+import { FC, useRef, useState } from "react";
+import { Pressable, Text, View } from "react-native";
 
 import { useAppDispatch, useAppSelector } from "@hooks";
 import { setSelectedRecipe } from "@store";
@@ -49,6 +49,8 @@ export const RecipeCardComponent: FC<{
 
   const [isPressedIn, setIsPressedIn] = useState(false);
 
+  const pressableRef = useRef<View | null>(null);
+
   return (
     <Pressable
       onPress={() => {
@@ -58,19 +60,49 @@ export const RecipeCardComponent: FC<{
       }}
       onPressIn={() => setIsPressedIn(() => true)}
       onPressOut={() => setIsPressedIn(() => false)}
+      ref={pressableRef}
       key={recipe.id}
     >
       <RecipeCardComponentWrapper index={index} pressedIn={isPressedIn}>
-        <Text>{recipe.name}</Text>
-        <RecipeTagsComponentWrapper>
-          {recipe.tags.map((tag) => (
-            <TagWrapper isSelected={selectedTags.includes(tag)} key={tag}>
-              <TagWrapperText isSelected={selectedTags.includes(tag)}>
-                {tag}
-              </TagWrapperText>
-            </TagWrapper>
-          ))}
-        </RecipeTagsComponentWrapper>
+        <View>
+          <Text>{recipe.name}</Text>
+          <RecipeTagsComponentWrapper>
+            {recipe.tags.map((tag) => (
+              <TagWrapper isSelected={selectedTags.includes(tag)} key={tag}>
+                <TagWrapperText isSelected={selectedTags.includes(tag)}>
+                  {tag}
+                </TagWrapperText>
+              </TagWrapper>
+            ))}
+          </RecipeTagsComponentWrapper>
+        </View>
+        <View
+          style={{
+            flexDirection: "row",
+            justifyContent: "space-between",
+            alignItems: "flex-end",
+          }}
+        >
+          <View>
+            {!!recipe.steps.filter((step) => step.type === "prep").length && (
+              <Text style={{ color: "grey", fontSize: 10 }}>
+                {recipe.steps
+                  .filter((step) => step.type === "prep")
+                  .reduce((acc, { duration }) => acc + duration, 0)}{" "}
+                mins prep time
+              </Text>
+            )}
+            {!!recipe.steps.filter((step) => step.type === "cook").length && (
+              <Text style={{ color: "grey", fontSize: 10 }}>
+                {recipe.steps
+                  .filter((step) => step.type === "cook")
+                  .reduce((acc, { duration }) => acc + duration, 0)}{" "}
+                mins cook time
+              </Text>
+            )}
+          </View>
+          <Text>😊👌💩</Text>
+        </View>
       </RecipeCardComponentWrapper>
     </Pressable>
   );

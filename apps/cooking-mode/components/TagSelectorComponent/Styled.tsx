@@ -2,7 +2,7 @@ import { FC, PropsWithChildren } from "react";
 import { View } from "react-native";
 
 export const ComponentWrapper: FC<PropsWithChildren> = ({ children }) => {
-  return <View style={{ marginVertical: 8 }}>{children}</View>;
+  return <View>{children}</View>;
 };
 
 interface TagComponentWrapperProps {
@@ -32,6 +32,8 @@ export const TagComponentWrapper: FC<
         elevation: 2,
         marginLeft: index === 0 ? 8 : 2,
         marginRight: index === tags.length - 1 ? 8 : 2,
+        marginTop: 2,
+        marginBottom: 4,
         padding: 8,
       }}
     >
