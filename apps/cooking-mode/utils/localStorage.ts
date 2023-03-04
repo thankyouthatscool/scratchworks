@@ -39,7 +39,6 @@ export const setLocalStorageSettings = async (
 
 // Data
 // Recipes
-
 export const getAllLocalStorageRecipes = async () => {
   const resString = await AsyncStorage.getItem("recipes");
 
@@ -60,4 +59,23 @@ export const bulkSetLocalStorageRecipes = async (recipes: Recipe[]) => {
   } catch {
     return { status: false };
   }
+};
+
+export const updateLocalStorageRecipe = async (updatedRecipe: Recipe) => {
+  const resString = await AsyncStorage.getItem("recipes");
+
+  const recipes = JSON.parse(resString!) as Recipe[];
+
+  const targetRecipe = recipes.find(
+    (recipe) => recipe.id === updatedRecipe.id
+  )!;
+  const targetRecipeIndex = recipes.indexOf(targetRecipe);
+
+  const updatedRecipes = [
+    ...recipes.slice(0, targetRecipeIndex),
+    updatedRecipe,
+    ...recipes.slice(targetRecipeIndex),
+  ];
+
+  await AsyncStorage.setItem("recipes", JSON.stringify(updatedRecipes));
 };

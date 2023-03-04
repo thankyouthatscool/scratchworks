@@ -29,6 +29,18 @@ export const recipesSlice = createSlice({
     setSelectedTags: (state, { payload }: PayloadAction<string[]>) => {
       state.selectedTags = payload;
     },
+    updateRecipe: (state, { payload }: PayloadAction<Recipe>) => {
+      const targetRecipe = state.recipes.find(
+        (recipe) => recipe.id === payload.id
+      )!;
+      const targetRecipeIndex = state.recipes.indexOf(targetRecipe);
+
+      state.recipes = [
+        ...state.recipes.slice(0, targetRecipeIndex),
+        payload,
+        ...state.recipes.slice(targetRecipeIndex + 1),
+      ];
+    },
   },
 });
 
@@ -37,5 +49,8 @@ export const {
   // Recipes
   bulkSetRecipes,
   setSelectedRecipe,
+  updateRecipe,
+
+  //Tags
   setSelectedTags,
 } = recipesSlice.actions;
