@@ -1,6 +1,8 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-import type { AppSettings } from "@types";
+import type { AppSettings, Recipe } from "@types";
+
+// Settings
 
 export const getLocalStorageSettings = async () => {
   const resString = await AsyncStorage.getItem("appSettings");
@@ -32,5 +34,30 @@ export const setLocalStorageSettings = async (
     return true;
   } catch {
     return false;
+  }
+};
+
+// Data
+// Recipes
+
+export const getAllLocalStorageRecipes = async () => {
+  const resString = await AsyncStorage.getItem("recipes");
+
+  if (!!resString) {
+    const recipes = JSON.parse(resString) as Recipe[];
+
+    return { recipes, status: true };
+  } else {
+    return { recipes: [], status: false };
+  }
+};
+
+export const bulkSetLocalStorageRecipes = async (recipes: Recipe[]) => {
+  try {
+    await AsyncStorage.setItem("recipes", JSON.stringify(recipes));
+
+    return { status: true };
+  } catch {
+    return { status: false };
   }
 };

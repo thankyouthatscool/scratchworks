@@ -1,19 +1,13 @@
 import { createDrawerNavigator } from "@react-navigation/drawer";
-import { Button, Text, View, Platform } from "react-native";
-import { FC, useEffect, useState, useRef } from "react";
-
-import { SafeAreaView } from "react-native-safe-area-context";
+import { useEffect } from "react";
 
 import { useAppDispatch, useAppSelector } from "@hooks";
+import { RecipeScreen } from "@screens/RecipeScreen";
 import { HomeScreen } from "@screens/HomeScreen";
 import { SettingsScreen } from "@screens/SettingsScreen";
-import { setAppSettings } from "@store";
-import type {
-  RootDrawerNavigatorProps,
-  RecipeScreenNavigationProps,
-  Recipe,
-} from "@types";
-import { getLocalStorageSettings } from "@utils";
+import { bulkSetRecipes, setAppSettings } from "@store";
+import type { RootDrawerNavigatorProps } from "@types";
+import { getAllLocalStorageRecipes, getLocalStorageSettings } from "@utils";
 
 const RootDrawer = createDrawerNavigator<RootDrawerNavigatorProps>();
 
@@ -24,6 +18,9 @@ export const AppRoot = () => {
 
   const handleInitialLoad = async () => {
     const appSettings = await getLocalStorageSettings();
+    const { recipes } = await getAllLocalStorageRecipes();
+
+    dispatch(bulkSetRecipes(recipes));
 
     if (!!appSettings) {
       dispatch(setAppSettings(appSettings));
@@ -32,7 +29,7 @@ export const AppRoot = () => {
 
   useEffect(() => {
     handleInitialLoad();
-  });
+  }, []);
 
   return (
     <RootDrawer.Navigator screenOptions={{ headerShown: false }}>
@@ -46,34 +43,5 @@ export const AppRoot = () => {
       />
       <RootDrawer.Screen component={SettingsScreen} name="Settings" />
     </RootDrawer.Navigator>
-  );
-};
-
-const RecipeScreen: FC<RecipeScreenNavigationProps> = ({ navigation }) => {
-  const { recipes, selectedRecipe } = useAppSelector(({ recipes }) => recipes);
-
-  const [targetRecipe, setTargetRecipe] = useState<Recipe | null>(null);
-
-  useEffect(() => {
-    if (!!selectedRecipe) {
-      setTargetRecipe(
-        () => recipes.find((recipe) => recipe.id === selectedRecipe)!
-      );
-    } else {
-      navigation.navigate("Home");
-    }
-  }, [selectedRecipe]);
-
-  return (
-    <SafeAreaView>
-      <Text>Selected Recipe: {selectedRecipe}</Text>
-      <Text>{targetRecipe?.name}</Text>
-      <Button
-        onPress={() => {
-          navigation.goBack();
-        }}
-        title="back"
-      />
-    </SafeAreaView>
   );
 };

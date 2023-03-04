@@ -10,13 +10,7 @@ export const TagSelectorComponent = () => {
 
   const { recipes, selectedTags } = useAppSelector(({ recipes }) => recipes);
 
-  const [tags] = useState(() =>
-    Array.from(
-      new Set(
-        recipes.reduce((acc, { tags }) => [...acc, ...tags], [] as string[])
-      )
-    ).sort((a, b) => a.localeCompare(b))
-  );
+  const [tags, setTags] = useState<string[]>([]);
 
   const [availableTags, setAvailableTags] = useState<string[]>(tags);
   const [isLoading, setIsLoading] = useState(false);
@@ -38,7 +32,18 @@ export const TagSelectorComponent = () => {
     );
 
     setAvailableTags(() => availableTags);
-  }, [selectedTags]);
+  }, [recipes, selectedTags]);
+
+  useEffect(() => {
+    setTags(() => {
+      const tags = Array.from(
+        new Set(
+          recipes.reduce((acc, { tags }) => [...acc, ...tags], [] as string[])
+        )
+      ).sort((a, b) => a.localeCompare(b));
+      return tags;
+    });
+  }, [recipes]);
 
   const handleIsLoadingChange = async () => {
     setTimeout(() => {
