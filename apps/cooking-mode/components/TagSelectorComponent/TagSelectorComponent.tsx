@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { FlatList, Pressable, Text, View } from "react-native";
+import { FlatList, Pressable, Text } from "react-native";
 
 import { useAppDispatch, useAppSelector } from "@hooks";
 import { setSelectedTags } from "@store";
@@ -108,6 +108,11 @@ export const TagSelectorComponent = () => {
             <Pressable
               disabled={!availableTags.includes(item)}
               onPress={() => {
+                flatListRef.current?.scrollToIndex({
+                  index: 0,
+                  animated: true,
+                });
+
                 dispatch(
                   setSelectedTags(
                     selectedTags.includes(item)

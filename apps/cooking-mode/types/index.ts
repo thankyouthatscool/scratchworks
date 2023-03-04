@@ -26,9 +26,17 @@ export type AppState = {
   appSettings: Partial<AppSettings>;
 };
 
+type RecipeStep = {
+  description: string;
+  duration: number;
+  sub?: boolean;
+  id: string;
+};
+
 export type Recipe = {
   id: string;
-  name: string;
-  tags: string[];
   description?: string;
+  name: string;
+  steps: RecipeStep[];
+  tags: string[];
 };
