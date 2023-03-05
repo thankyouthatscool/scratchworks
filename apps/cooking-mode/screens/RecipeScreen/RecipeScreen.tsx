@@ -10,6 +10,8 @@ import {
   View,
 } from "react-native";
 
+import uuid from "react-native-uuid";
+
 import { useAppDispatch, useAppSelector } from "@hooks";
 import { updateRecipe } from "@store";
 import {
@@ -19,7 +21,7 @@ import {
   RootWrapper,
   StyledTextInput,
 } from "./Styled";
-import { Recipe, RecipeScreenNavigationProps } from "@types";
+import { Recipe, RecipeStep, RecipeScreenNavigationProps } from "@types";
 import { updateLocalStorageRecipe } from "@utils";
 import { ScrollView } from "react-native-gesture-handler";
 
@@ -42,7 +44,7 @@ export const RecipeScreen: FC<RecipeScreenNavigationProps> = ({
 
   const [recipeDescription, setRecipeDescription] = useState<string>("");
   const [recipeName, setRecipeName] = useState<string>("");
-  const [recipeStepsText, setRecipeStepsText] = useState<string[]>([]);
+  const [recipeSteps, setRecipeSteps] = useState<RecipeStep[]>([]);
 
   const [isUpdateNeeded, setIsUpdateNeeded] = useState<boolean>(false);
 
@@ -52,10 +54,7 @@ export const RecipeScreen: FC<RecipeScreenNavigationProps> = ({
         ...targetRecipe!,
         description: recipeDescription,
         name: recipeName,
-        steps: targetRecipe?.steps.map((step, idx) => ({
-          ...step,
-          description: recipeStepsText[idx],
-        }))!,
+        steps: recipeSteps,
       })
     );
 
@@ -63,10 +62,7 @@ export const RecipeScreen: FC<RecipeScreenNavigationProps> = ({
       ...targetRecipe!,
       description: recipeDescription,
       name: recipeName,
-      steps: targetRecipe?.steps.map((step, idx) => ({
-        ...step,
-        description: recipeStepsText[idx],
-      }))!,
+      steps: recipeSteps,
     });
 
     setIsUpdateNeeded(() => false);
@@ -74,7 +70,7 @@ export const RecipeScreen: FC<RecipeScreenNavigationProps> = ({
     Keyboard.dismiss();
 
     ToastAndroid.show("Recipe updated", ToastAndroid.SHORT);
-  }, [recipeDescription, recipeName, recipeStepsText, targetRecipe]);
+  }, [recipeDescription, recipeName, recipeSteps, targetRecipe]);
 
   useEffect(() => {
     if (!!selectedRecipe) {
@@ -90,9 +86,7 @@ export const RecipeScreen: FC<RecipeScreenNavigationProps> = ({
     if (!!targetRecipe) {
       setRecipeDescription(() => targetRecipe.description || "");
       setRecipeName(() => targetRecipe.name);
-      setRecipeStepsText(() =>
-        targetRecipe.steps.map((step) => step.description)
-      );
+      setRecipeSteps(() => targetRecipe.steps.map((step) => step));
     }
   }, [targetRecipe]);
 
@@ -135,23 +129,26 @@ export const RecipeScreen: FC<RecipeScreenNavigationProps> = ({
               setRecipeDescription(() => newDescription);
             }}
             placeholder="Recipe Description"
-            textAlignVertical="top"
+            textAlignVertical="center"
           />
           <Text style={{ fontSize: 16, fontWeight: "500" }}>Steps</Text>
-          {recipeStepsText.map((text, idx) => (
+          {recipeSteps.map(({ description }, idx) => (
             <View
               key={idx}
-              style={{ alignItems: "center", flexDirection: "row" }}
+              style={{
+                alignItems: "center",
+                flexDirection: "row",
+              }}
             >
               <Text>🔥</Text>
               <StyledTextInput
-                defaultValue={text}
+                defaultValue={description}
                 multiline
                 onChangeText={(newText) => {
                   setIsUpdateNeeded(() => true);
-                  setRecipeStepsText((data) => [
+                  setRecipeSteps((data) => [
                     ...data.slice(0, idx),
-                    newText,
+                    { ...data[idx], description: newText },
                     ...data.slice(idx + 1),
                   ]);
                 }}
@@ -159,8 +156,12 @@ export const RecipeScreen: FC<RecipeScreenNavigationProps> = ({
             </View>
           ))}
           <Button
+            disabled={!recipeSteps[recipeSteps.length - 1]?.description}
             onPress={() => {
-              setRecipeStepsText((steps) => [...steps, ""]);
+              setRecipeSteps((steps) => [
+                ...steps,
+                { description: "", id: uuid.v4() as string },
+              ]);
             }}
             title="Add Step"
           />

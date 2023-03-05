@@ -26,12 +26,12 @@ export type AppState = {
   appSettings: Partial<AppSettings>;
 };
 
-type RecipeStep = {
+export type RecipeStep = {
   description: string;
-  duration: number;
+  duration?: number;
   sub?: boolean;
   id: string;
-  type: "prep" | "cook";
+  type?: "prep" | "cook";
 };
 
 export type Recipe = {

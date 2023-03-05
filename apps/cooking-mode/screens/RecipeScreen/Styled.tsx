@@ -49,6 +49,7 @@ export const StyledTextInput: FC<
       fontSize: !!isHeading ? 20 : 14,
       fontWeight: !!isHeading ? "500" : "400",
       maxHeight: 200,
+      width: "95%",
       ...(!!isMargin && { marginVertical: 8 }),
     }}
   />
