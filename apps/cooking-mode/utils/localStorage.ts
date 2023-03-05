@@ -74,7 +74,7 @@ export const updateLocalStorageRecipe = async (updatedRecipe: Recipe) => {
   const updatedRecipes = [
     ...recipes.slice(0, targetRecipeIndex),
     updatedRecipe,
-    ...recipes.slice(targetRecipeIndex),
+    ...recipes.slice(targetRecipeIndex + 1),
   ];
 
   await AsyncStorage.setItem("recipes", JSON.stringify(updatedRecipes));
