@@ -49,7 +49,7 @@ export const StyledTextInput: FC<
       fontSize: !!isHeading ? 20 : 14,
       fontWeight: !!isHeading ? "500" : "400",
       maxHeight: 200,
-      width: "95%",
+      width: "90%",
       ...(!!isMargin && { marginVertical: 8 }),
     }}
   />
@@ -68,6 +68,39 @@ export const BigTagWrapper: FC<
         elevation: 2,
         padding: 2,
         marginRight: 4,
+      }}
+    >
+      {children}
+    </View>
+  );
+};
+
+export const OuterModalContainerWrapper: FC<PropsWithChildren> = ({
+  children,
+}) => {
+  return (
+    <View
+      style={{
+        alignItems: "center",
+        height: "100%",
+        justifyContent: "center",
+      }}
+    >
+      {children}
+    </View>
+  );
+};
+
+export const InnerModalContainerWrapper: FC<PropsWithChildren> = ({
+  children,
+}) => {
+  return (
+    <View
+      style={{
+        backgroundColor: "white",
+        elevation: 10,
+        padding: 8,
+        width: "80%",
       }}
     >
       {children}
