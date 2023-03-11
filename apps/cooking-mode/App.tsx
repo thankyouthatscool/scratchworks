@@ -14,7 +14,14 @@ const pop = async () => {
       id: "d95405d8-1e9c-456e-aaa5-cabd5fd83e9a",
       name: "Yes yes yes",
       reactions: ["🔥"],
-      steps: [],
+      steps: [
+        {
+          description: "make it rain on these os",
+          id: "6eee464e-8bac-4039-9bef-433b6b8df6c4",
+          duration: 10,
+          type: "cook",
+        },
+      ],
       tags: [
         "yes yes yes",
         "zero dark thirty",
@@ -27,7 +34,14 @@ const pop = async () => {
       id: "051c555c-83ab-42b7-88d6-b502b33f2fa1",
       name: "No No No",
       reactions: ["🐩"],
-      steps: [],
+      steps: [
+        {
+          description: "mazda",
+          id: "e3c7fee0-14b7-48a5-a45b-bb0fa1789c9d",
+          duration: 99,
+          type: "prep",
+        },
+      ],
       tags: ["no no no"],
     },
   ]);

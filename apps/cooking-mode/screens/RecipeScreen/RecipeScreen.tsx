@@ -328,6 +328,7 @@ const RecipeStepCard: FC<RecipeCardProps> = ({
             isMargin
             multiline
             onChangeText={(newText) => handleUpdateStepText(newText, idx)}
+            placeholder="Step Description"
           />
         </View>
         {!!isExpanded && (
