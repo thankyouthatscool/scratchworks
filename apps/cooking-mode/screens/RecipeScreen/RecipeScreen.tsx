@@ -213,7 +213,8 @@ export const RecipeScreen: FC<RecipeScreenNavigationProps> = ({
                   }
 
                   return acc;
-                }, 0)}{" "}
+                }, 0)}
+                {"  "}
                 min cook time
               </Text>
             </View>
