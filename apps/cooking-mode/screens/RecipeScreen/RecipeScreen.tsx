@@ -58,6 +58,26 @@ export const RecipeScreen: FC<RecipeScreenNavigationProps> = ({
     useState<boolean>(false);
   const [isUpdateNeeded, setIsUpdateNeeded] = useState<boolean>(false);
 
+  const handleRecipeStepUpdate = useCallback(async () => {
+    const targetRecipeStep = recipeSteps.find(
+      (recipe) => recipe.id === selectedStepId
+    );
+
+    const targetRecipeStepIndex = recipeSteps.indexOf(targetRecipeStep!);
+
+    setRecipeSteps((recipeSteps) => [
+      ...recipeSteps.slice(0, targetRecipeStepIndex),
+      {
+        ...recipeSteps[targetRecipeStepIndex],
+        duration: selectedRecipeStep?.duration,
+        type: selectedRecipeStep?.type,
+      },
+      ...recipeSteps.slice(targetRecipeStepIndex + 1),
+    ]);
+
+    setIsUpdateNeeded(() => true);
+  }, [recipeSteps, selectedRecipeStep, selectedStepId]);
+
   const handleRecipeUpdate = useCallback(async () => {
     dispatch(
       updateRecipe({
@@ -82,6 +102,16 @@ export const RecipeScreen: FC<RecipeScreenNavigationProps> = ({
     ToastAndroid.show("Recipe updated", ToastAndroid.SHORT);
   }, [recipeDescription, recipeName, recipeSteps, targetRecipe]);
 
+  const handleUpdateStepDescriptionText = (newText: string, idx: number) => {
+    setIsUpdateNeeded(() => true);
+    setRecipeSteps((data) => [
+      ...data.slice(0, idx),
+      { ...data[idx], description: newText },
+      ...data.slice(idx + 1),
+    ]);
+  };
+
+  // Effects
   useEffect(() => {
     if (!!selectedRecipe) {
       setTargetRecipe(
@@ -214,8 +244,8 @@ export const RecipeScreen: FC<RecipeScreenNavigationProps> = ({
               <View style={{ flex: 1, marginLeft: 4 }}>
                 <Button
                   color="green"
-                  onPress={() => {
-                    console.log("will need to actually save all this");
+                  onPress={async () => {
+                    await handleRecipeStepUpdate();
 
                     setSelectedStepId(() => null);
                     setIsStepEditModalOpen(() => false);
@@ -256,9 +286,9 @@ export const RecipeScreen: FC<RecipeScreenNavigationProps> = ({
               </BigTagWrapper>
             ))}
           </View>
-          <Text style={{ fontSize: 16, fontWeight: "500" }}>Description</Text>
           <StyledTextInput
             defaultValue={recipeDescription}
+            isMargin
             multiline
             onChangeText={(newDescription) => {
               setIsUpdateNeeded(() => true);
@@ -267,7 +297,42 @@ export const RecipeScreen: FC<RecipeScreenNavigationProps> = ({
             placeholder="Recipe Description"
             textAlignVertical="center"
           />
-          <Text style={{ fontSize: 16, fontWeight: "500" }}>Instructions</Text>
+          {/* {recipeSteps.map((step, idx) => (
+            <Pressable
+              key={step.id}
+              onLongPress={() => {
+                console.log("long press is a go");
+              }}
+            >
+              <View
+                style={{
+                  backgroundColor: "white",
+                  borderRadius: 5,
+                  elevation: 2,
+                  marginVertical: 4,
+                  padding: 8,
+                }}
+              >
+                <Text style={{ fontSize: 16, fontWeight: "500" }}>
+                  Step {idx + 1}
+                  {!!step.duration && ` - ${step.duration} mins`}
+                </Text>
+                <StyledTextInput
+                  defaultValue={step.description}
+                  isMargin
+                  multiline
+                  onChangeText={(newText) => {
+                    setIsUpdateNeeded(() => true);
+                    setRecipeSteps((data) => [
+                      ...data.slice(0, idx),
+                      { ...data[idx], description: newText },
+                      ...data.slice(idx + 1),
+                    ]);
+                  }}
+                />
+              </View>
+            </Pressable>
+          ))}
           {recipeSteps.map(({ description, id }, idx) => (
             <View
               key={idx}
@@ -281,6 +346,8 @@ export const RecipeScreen: FC<RecipeScreenNavigationProps> = ({
                   console.log("Starting from this step", id);
                 }}
                 onLongPress={() => {
+                  console.log(id);
+
                   setSelectedStepId(() => id);
 
                   setIsStepEditModalOpen(() => true);
@@ -305,6 +372,17 @@ export const RecipeScreen: FC<RecipeScreenNavigationProps> = ({
                 }}
               />
             </View>
+          ))} */}
+          {recipeSteps.map((recipeStep, idx) => (
+            <RecipeStepCard
+              handleUpdateStepText={handleUpdateStepDescriptionText}
+              idx={idx}
+              isFirst={idx === 0}
+              isLast={idx === recipeSteps.length - 1}
+              key={recipeStep.id}
+              onRecipeStepUpdate={setSelectedRecipeStep}
+              recipeStep={recipeStep}
+            />
           ))}
           <Button
             disabled={
@@ -333,5 +411,81 @@ export const RecipeScreen: FC<RecipeScreenNavigationProps> = ({
         </MainCardWrapper>
       </ScrollView>
     </RootWrapper>
+  );
+};
+
+interface RecipeCardProps {
+  handleUpdateStepText: (newText: string, idx: number) => void;
+  idx: number;
+  isFirst: boolean;
+  isLast: boolean;
+  recipeStep: RecipeStep;
+  onRecipeStepUpdate: React.Dispatch<React.SetStateAction<RecipeStep | null>>;
+}
+
+const RecipeStepCard: FC<RecipeCardProps> = ({
+  handleUpdateStepText,
+  idx,
+  isFirst,
+  isLast,
+  recipeStep,
+}) => {
+  const [isExpanded, setIsExpanded] = useState<boolean>(false);
+
+  return (
+    <Pressable
+      onLongPress={() =>
+        isExpanded ? () => {} : setIsExpanded((isExpanded) => !isExpanded)
+      }
+    >
+      <View
+        style={{
+          backgroundColor: "white",
+          borderRadius: 5,
+          elevation: 2,
+          marginVertical: 4,
+          marginTop: isFirst ? 0 : 4,
+          marginBottom: isLast ? 8 : 4,
+          padding: 8,
+        }}
+      >
+        <View
+          style={{
+            alignItems: "flex-start",
+            flexDirection: "row",
+            justifyContent: "space-between",
+          }}
+        >
+          <StyledTextInput
+            defaultValue={recipeStep.description}
+            editable={isExpanded}
+            isMargin
+            multiline
+            onChangeText={(newText) => handleUpdateStepText(newText, idx)}
+          />
+        </View>
+        {!!isExpanded && (
+          <View>
+            <View style={{ flexDirection: "row" }}>
+              <StyledTextInput
+                defaultValue={recipeStep.duration?.toString() || ""}
+                editable={false}
+                isFlex
+                placeholder="Step Duration"
+              />
+              <Button color="red" title="Downies" />
+              <View style={{ marginLeft: 4 }}>
+                <Button color="green" title="Uppies" />
+              </View>
+            </View>
+            <Pressable>
+              <View>
+                <Text>Close</Text>
+              </View>
+            </Pressable>
+          </View>
+        )}
+      </View>
+    </Pressable>
   );
 };

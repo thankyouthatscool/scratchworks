@@ -38,10 +38,11 @@ export const HeaderWrapper: FC<PropsWithChildren> = ({ children }) => {
 
 export const StyledTextInput: FC<
   ComponentPropsWithoutRef<typeof TextInput> & {
+    isFlex?: boolean;
     isHeading?: boolean;
     isMargin?: boolean;
   }
-> = ({ isHeading, isMargin, ...props }) => (
+> = ({ isFlex, isHeading, isMargin, ...props }) => (
   <TextInput
     {...props}
     style={{
@@ -49,7 +50,7 @@ export const StyledTextInput: FC<
       fontSize: !!isHeading ? 20 : 14,
       fontWeight: !!isHeading ? "500" : "400",
       maxHeight: 200,
-      width: "90%",
+      ...(!!isFlex && { flex: 1 }),
       ...(!!isMargin && { marginVertical: 8 }),
     }}
   />
