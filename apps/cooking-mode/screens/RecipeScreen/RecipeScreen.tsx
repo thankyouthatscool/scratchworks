@@ -111,6 +111,28 @@ export const RecipeScreen: FC<RecipeScreenNavigationProps> = ({
     ]);
   };
 
+  const handleUpdateStepDetails = ({
+    duration,
+    idx,
+    type,
+  }: {
+    duration?: number;
+    idx: number;
+    type?: "cook" | "prep";
+  }) => {
+    setIsUpdateNeeded(() => true);
+    setRecipeSteps((data) => [
+      ...data.slice(0, idx),
+      {
+        ...data[idx],
+        duration:
+          duration === 0 ? 0 : !!duration ? duration : data[idx].duration,
+        type: !!type ? type : data[idx].type,
+      },
+      ...data.slice(idx + 1),
+    ]);
+  };
+
   // Effects
   useEffect(() => {
     if (!!selectedRecipe) {
@@ -140,123 +162,6 @@ export const RecipeScreen: FC<RecipeScreenNavigationProps> = ({
 
   return (
     <RootWrapper>
-      <Modal
-        animationType="slide"
-        hardwareAccelerated
-        onRequestClose={() => {
-          setSelectedStepId(() => null);
-          setIsStepEditModalOpen(() => false);
-        }}
-        transparent
-        visible={isStepEditModalOpen}
-      >
-        <OuterModalContainerWrapper>
-          <InnerModalContainerWrapper>
-            <Text style={{ fontSize: 20, fontWeight: "500" }}>
-              {targetRecipe?.name}
-            </Text>
-            <Text>{selectedRecipeStep?.description}</Text>
-            <View style={{ flexDirection: "row" }}>
-              <TextInput
-                defaultValue={selectedRecipeStep?.duration?.toString() || "0"}
-                editable={false}
-                placeholder="Step Duration"
-                style={{ borderWidth: 2, color: "black", flex: 1, padding: 4 }}
-              />
-              <Button
-                // FIX: Right now one minute is the smallest step. Will need to have seconds and all that.
-                onPress={() => {
-                  if (selectedRecipeStep?.duration! > 1) {
-                    setSelectedRecipeStep((step) => ({
-                      ...step!,
-                      duration: !!step?.duration ? step?.duration! - 1 : 0,
-                    }));
-                  }
-                }}
-                title="Downies"
-              />
-              <Button
-                onPress={() => {
-                  setSelectedRecipeStep((step) => ({
-                    ...step!,
-                    duration: !!step?.duration ? step?.duration! + 1 : 1,
-                  }));
-                }}
-                title="Uppies"
-              />
-            </View>
-            <View
-              style={{ flexDirection: "row", justifyContent: "space-between" }}
-            >
-              <Pressable
-                onPress={() => {
-                  setSelectedRecipeStep((step) => ({ ...step!, type: "prep" }));
-                }}
-                style={{ flex: 1 }}
-              >
-                <View
-                  style={{
-                    backgroundColor: "white",
-                    borderColor:
-                      selectedRecipeStep?.type === "prep" ? "green" : "white",
-                    borderRadius: 5,
-                    borderWidth: 2,
-                    elevation: selectedRecipeStep?.type === "prep" ? 0 : 2,
-                    marginVertical: 4,
-                    marginRight: 4,
-                    padding: 4,
-                  }}
-                >
-                  <Text>Prep</Text>
-                </View>
-              </Pressable>
-              <Pressable
-                onPress={() => {
-                  setSelectedRecipeStep((step) => ({ ...step!, type: "cook" }));
-                }}
-                style={{ flex: 1 }}
-              >
-                <View
-                  style={{
-                    backgroundColor: "white",
-                    borderColor:
-                      selectedRecipeStep?.type === "cook" ? "green" : "white",
-                    borderRadius: 5,
-                    borderWidth: 2,
-                    elevation: selectedRecipeStep?.type === "cook" ? 0 : 2,
-                    marginVertical: 4,
-                    marginRight: 4,
-                    padding: 4,
-                  }}
-                >
-                  <Text>Cook</Text>
-                </View>
-              </Pressable>
-            </View>
-            <View style={{ flexDirection: "row" }}>
-              <Button
-                onPress={() => {
-                  setSelectedStepId(() => null);
-                  setIsStepEditModalOpen(() => false);
-                }}
-                title="Close"
-              />
-              <View style={{ flex: 1, marginLeft: 4 }}>
-                <Button
-                  color="green"
-                  onPress={async () => {
-                    await handleRecipeStepUpdate();
-
-                    setSelectedStepId(() => null);
-                    setIsStepEditModalOpen(() => false);
-                  }}
-                  title="Update"
-                />
-              </View>
-            </View>
-          </InnerModalContainerWrapper>
-        </OuterModalContainerWrapper>
-      </Modal>
       <ScrollView>
         <MainCardWrapper>
           <HeaderWrapper>
@@ -275,7 +180,12 @@ export const RecipeScreen: FC<RecipeScreenNavigationProps> = ({
             )}
           </HeaderWrapper>
           <View
-            style={{ flexDirection: "row", flexWrap: "wrap", marginTop: 4 }}
+            style={{
+              alignItems: "center",
+              flexDirection: "row",
+              flexWrap: "wrap",
+              marginTop: 4,
+            }}
           >
             {targetRecipe?.tags.map((tag) => (
               <BigTagWrapper
@@ -285,6 +195,28 @@ export const RecipeScreen: FC<RecipeScreenNavigationProps> = ({
                 <Text style={{ fontSize: 10 }}>{tag}</Text>
               </BigTagWrapper>
             ))}
+            <View>
+              <Text style={{ fontSize: 7.5 }}>
+                {recipeSteps.reduce((acc, val) => {
+                  if (val.type === "prep" && !!val.duration) {
+                    return acc + val.duration;
+                  }
+
+                  return acc;
+                }, 0)}{" "}
+                min prep time
+              </Text>
+              <Text style={{ fontSize: 7.5 }}>
+                {recipeSteps.reduce((acc, val) => {
+                  if (val.type === "cook" && !!val.duration) {
+                    return acc + val.duration;
+                  }
+
+                  return acc;
+                }, 0)}{" "}
+                min cook time
+              </Text>
+            </View>
           </View>
           <StyledTextInput
             defaultValue={recipeDescription}
@@ -297,85 +229,10 @@ export const RecipeScreen: FC<RecipeScreenNavigationProps> = ({
             placeholder="Recipe Description"
             textAlignVertical="center"
           />
-          {/* {recipeSteps.map((step, idx) => (
-            <Pressable
-              key={step.id}
-              onLongPress={() => {
-                console.log("long press is a go");
-              }}
-            >
-              <View
-                style={{
-                  backgroundColor: "white",
-                  borderRadius: 5,
-                  elevation: 2,
-                  marginVertical: 4,
-                  padding: 8,
-                }}
-              >
-                <Text style={{ fontSize: 16, fontWeight: "500" }}>
-                  Step {idx + 1}
-                  {!!step.duration && ` - ${step.duration} mins`}
-                </Text>
-                <StyledTextInput
-                  defaultValue={step.description}
-                  isMargin
-                  multiline
-                  onChangeText={(newText) => {
-                    setIsUpdateNeeded(() => true);
-                    setRecipeSteps((data) => [
-                      ...data.slice(0, idx),
-                      { ...data[idx], description: newText },
-                      ...data.slice(idx + 1),
-                    ]);
-                  }}
-                />
-              </View>
-            </Pressable>
-          ))}
-          {recipeSteps.map(({ description, id }, idx) => (
-            <View
-              key={idx}
-              style={{
-                alignItems: "center",
-                flexDirection: "row",
-              }}
-            >
-              <Pressable
-                onPress={() => {
-                  console.log("Starting from this step", id);
-                }}
-                onLongPress={() => {
-                  console.log(id);
-
-                  setSelectedStepId(() => id);
-
-                  setIsStepEditModalOpen(() => true);
-                }}
-              >
-                <Text
-                  style={{ fontSize: 16, fontWeight: "bold", marginRight: 8 }}
-                >
-                  {idx + 1}
-                </Text>
-              </Pressable>
-              <StyledTextInput
-                defaultValue={description}
-                multiline
-                onChangeText={(newText) => {
-                  setIsUpdateNeeded(() => true);
-                  setRecipeSteps((data) => [
-                    ...data.slice(0, idx),
-                    { ...data[idx], description: newText },
-                    ...data.slice(idx + 1),
-                  ]);
-                }}
-              />
-            </View>
-          ))} */}
           {recipeSteps.map((recipeStep, idx) => (
             <RecipeStepCard
               handleUpdateStepText={handleUpdateStepDescriptionText}
+              handleUpdateStepDetails={handleUpdateStepDetails}
               idx={idx}
               isFirst={idx === 0}
               isLast={idx === recipeSteps.length - 1}
@@ -416,6 +273,13 @@ export const RecipeScreen: FC<RecipeScreenNavigationProps> = ({
 
 interface RecipeCardProps {
   handleUpdateStepText: (newText: string, idx: number) => void;
+  handleUpdateStepDetails: ({
+    duration,
+  }: {
+    duration?: number;
+    idx: number;
+    type?: "cook" | "prep";
+  }) => void;
   idx: number;
   isFirst: boolean;
   isLast: boolean;
@@ -425,6 +289,7 @@ interface RecipeCardProps {
 
 const RecipeStepCard: FC<RecipeCardProps> = ({
   handleUpdateStepText,
+  handleUpdateStepDetails,
   idx,
   isFirst,
   isLast,
@@ -473,16 +338,91 @@ const RecipeStepCard: FC<RecipeCardProps> = ({
                 isFlex
                 placeholder="Step Duration"
               />
-              <Button color="red" title="Downies" />
+              <Button
+                disabled={!recipeStep.duration}
+                color="red"
+                onPress={() => {
+                  if (!!recipeStep.duration) {
+                    handleUpdateStepDetails({
+                      duration: recipeStep.duration - 1,
+                      idx,
+                    });
+                  }
+                }}
+                title="Downies"
+              />
               <View style={{ marginLeft: 4 }}>
-                <Button color="green" title="Uppies" />
+                <Button
+                  color="green"
+                  onPress={() => {
+                    if (!recipeStep.duration) {
+                      return handleUpdateStepDetails({ duration: 1, idx });
+                    }
+
+                    return handleUpdateStepDetails({
+                      duration: recipeStep.duration + 1,
+                      idx,
+                    });
+                  }}
+                  title="Uppies"
+                />
               </View>
             </View>
-            <Pressable>
-              <View>
-                <Text>Close</Text>
-              </View>
-            </Pressable>
+            <View
+              style={{
+                flexDirection: "row",
+                justifyContent: "space-between",
+                marginVertical: 8,
+              }}
+            >
+              <Pressable
+                onPress={() => {
+                  handleUpdateStepDetails({ idx, type: "prep" });
+                }}
+                style={{ flex: 1, marginRight: 4 }}
+              >
+                <View
+                  style={{
+                    backgroundColor: "white",
+                    borderColor: recipeStep.type === "prep" ? "green" : "white",
+                    borderRadius: 5,
+                    borderWidth: 2,
+                    elevation: 2,
+                    padding: 4,
+                  }}
+                >
+                  <Text>Prep</Text>
+                </View>
+              </Pressable>
+              <Pressable
+                onPress={() => {
+                  handleUpdateStepDetails({ idx, type: "cook" });
+                }}
+                style={{ flex: 1, marginLeft: 4 }}
+              >
+                <View
+                  style={{
+                    backgroundColor: "white",
+                    borderColor: recipeStep.type === "cook" ? "green" : "white",
+                    borderRadius: 5,
+                    borderWidth: 2,
+                    elevation: 2,
+                    padding: 4,
+                  }}
+                >
+                  <Text>Cook</Text>
+                </View>
+              </Pressable>
+            </View>
+            <View style={{ alignItems: "flex-end" }}>
+              <Pressable
+                onPress={() => {
+                  setIsExpanded(() => false);
+                }}
+              >
+                <MDIcon name="expand-less" size={32} />
+              </Pressable>
+            </View>
           </View>
         )}
       </View>

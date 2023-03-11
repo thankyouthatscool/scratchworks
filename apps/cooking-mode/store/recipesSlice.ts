@@ -30,8 +30,6 @@ export const recipesSlice = createSlice({
       state.selectedTags = payload;
     },
     updateRecipe: (state, { payload }: PayloadAction<Recipe>) => {
-      console.log("cc", payload);
-
       const targetRecipe = state.recipes.find(
         (recipe) => recipe.id === payload.id
       )!;
