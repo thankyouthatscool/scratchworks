@@ -242,6 +242,7 @@ export const RecipeScreen: FC<RecipeScreenNavigationProps> = ({
               recipeStep={recipeStep}
             />
           ))}
+          {/* Make this open a modal instead. */}
           <Button
             disabled={
               !!recipeSteps.length &&
