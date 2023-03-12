@@ -42,9 +42,6 @@ export const RecipeScreen: FC<RecipeScreenNavigationProps> = ({
   );
 
   const [targetRecipe, setTargetRecipe] = useState<Recipe | null>(null);
-  const [isIngredientsOpen, setIsIngredientsOpen] = useState(false);
-  const [isRecipeInProgress, setIsRecipeInProgress] = useState<boolean>(false);
-  const [isStepsOpen, setIsStepsOpen] = useState(false);
 
   const [recipeDescription, setRecipeDescription] = useState<string>("");
   const [recipeName, setRecipeName] = useState<string>("");
@@ -54,9 +51,15 @@ export const RecipeScreen: FC<RecipeScreenNavigationProps> = ({
   const [selectedRecipeStep, setSelectedRecipeStep] =
     useState<RecipeStep | null>(null);
 
-  const [isStepEditModalOpen, setIsStepEditModalOpen] =
+  const [isAddRecipeStepModalOpen, setIsAddRecipeStepModalOpen] =
     useState<boolean>(false);
   const [isUpdateNeeded, setIsUpdateNeeded] = useState<boolean>(false);
+
+  const [newStepData, setNewStepData] = useState<{
+    description: string;
+    duration?: number;
+    type?: "cook" | "prep";
+  }>({ description: "" });
 
   const handleRecipeStepUpdate = useCallback(async () => {
     const targetRecipeStep = recipeSteps.find(
@@ -162,6 +165,154 @@ export const RecipeScreen: FC<RecipeScreenNavigationProps> = ({
 
   return (
     <RootWrapper>
+      <Modal
+        animationType="slide"
+        hardwareAccelerated
+        onRequestClose={() => {
+          setIsAddRecipeStepModalOpen(() => false);
+        }}
+        transparent
+        visible={isAddRecipeStepModalOpen}
+      >
+        <OuterModalContainerWrapper>
+          <InnerModalContainerWrapper>
+            <View>
+              <Text style={{ fontSize: 20, fontWeight: "500" }}>
+                Add New Step
+              </Text>
+              <StyledTextInput
+                defaultValue={newStepData.description}
+                multiline
+                onChangeText={(newStepDescription) =>
+                  setNewStepData((data) => ({
+                    ...data,
+                    description: newStepDescription,
+                  }))
+                }
+                placeholder="Step Description"
+              />
+              <View
+                style={{
+                  flexDirection: "row",
+                  justifyContent: "space-around",
+                }}
+              >
+                <StyledTextInput
+                  defaultValue={
+                    !!newStepData.duration
+                      ? `${newStepData.duration} minutes`
+                      : ""
+                  }
+                  editable={false}
+                  isFlex
+                  placeholder="Step Duration"
+                />
+                <Button
+                  color="red"
+                  disabled={!newStepData.duration}
+                  onPress={() => {
+                    setNewStepData((data) => ({
+                      ...data,
+                      duration: !!data.duration ? data.duration - 1 : 0,
+                    }));
+                  }}
+                  title="Downies!"
+                />
+                <View style={{ marginLeft: 8 }}>
+                  <Button
+                    color="green"
+                    onPress={() => {
+                      setNewStepData((data) => ({
+                        ...data,
+                        duration: !!data.duration ? data.duration + 1 : 1,
+                      }));
+                    }}
+                    title="Uppies!"
+                  />
+                </View>
+              </View>
+            </View>
+            <View
+              style={{
+                flexDirection: "row",
+                justifyContent: "space-between",
+                marginVertical: 8,
+              }}
+            >
+              <Pressable
+                onPress={() => {
+                  setNewStepData((data) => ({ ...data, type: "prep" }));
+                }}
+                style={{ flex: 1, marginRight: 4 }}
+              >
+                <View
+                  style={{
+                    backgroundColor: "white",
+                    borderColor:
+                      newStepData.type === "prep" ? "green" : "white",
+                    borderRadius: 5,
+                    borderWidth: 2,
+                    elevation: 2,
+                    padding: 4,
+                  }}
+                >
+                  <Text>Prep</Text>
+                </View>
+              </Pressable>
+              <Pressable
+                onPress={() => {
+                  setNewStepData((data) => ({ ...data, type: "cook" }));
+                }}
+                style={{ flex: 1, marginLeft: 4 }}
+              >
+                <View
+                  style={{
+                    backgroundColor: "white",
+                    borderColor:
+                      newStepData.type === "cook" ? "green" : "white",
+                    borderRadius: 5,
+                    borderWidth: 2,
+                    elevation: 2,
+                    padding: 4,
+                  }}
+                >
+                  <Text>Cook</Text>
+                </View>
+              </Pressable>
+            </View>
+            <View style={{ flexDirection: "row", justifyContent: "flex-end" }}>
+              <Button
+                color="orange"
+                onPress={() => {
+                  setIsAddRecipeStepModalOpen(() => false);
+
+                  setNewStepData(() => ({ description: "" }));
+                }}
+                title="Cancel"
+              />
+              <View style={{ marginLeft: 8 }}>
+                <Button
+                  color="green"
+                  disabled={!newStepData.description}
+                  onPress={() => {
+                    setRecipeSteps((recipeSteps) => [
+                      ...recipeSteps,
+                      { ...newStepData, id: uuid.v4() as string },
+                    ]);
+
+                    setNewStepData(() => ({ description: "" }));
+
+                    setIsUpdateNeeded(() => true);
+
+                    setIsAddRecipeStepModalOpen(() => false);
+                  }}
+                  title="Save"
+                />
+              </View>
+            </View>
+          </InnerModalContainerWrapper>
+        </OuterModalContainerWrapper>
+      </Modal>
       <ScrollView>
         <MainCardWrapper>
           <HeaderWrapper>
@@ -232,6 +383,14 @@ export const RecipeScreen: FC<RecipeScreenNavigationProps> = ({
           />
           {recipeSteps.map((recipeStep, idx) => (
             <RecipeStepCard
+              handleDeleteStep={(idx: number) => {
+                setRecipeSteps((steps) => [
+                  ...steps.slice(0, idx),
+                  ...steps.slice(idx + 1),
+                ]);
+
+                setIsUpdateNeeded(() => true);
+              }}
               handleUpdateStepText={handleUpdateStepDescriptionText}
               handleUpdateStepDetails={handleUpdateStepDetails}
               idx={idx}
@@ -242,17 +401,13 @@ export const RecipeScreen: FC<RecipeScreenNavigationProps> = ({
               recipeStep={recipeStep}
             />
           ))}
-          {/* Make this open a modal instead. */}
           <Button
             disabled={
               !!recipeSteps.length &&
               !recipeSteps[recipeSteps.length - 1]?.description
             }
             onPress={() => {
-              setRecipeSteps((steps) => [
-                ...steps,
-                { description: "", id: uuid.v4() as string },
-              ]);
+              setIsAddRecipeStepModalOpen(() => true);
             }}
             title="Add Step"
           />
@@ -274,6 +429,7 @@ export const RecipeScreen: FC<RecipeScreenNavigationProps> = ({
 };
 
 interface RecipeCardProps {
+  handleDeleteStep: (idx: number) => void;
   handleUpdateStepText: (newText: string, idx: number) => void;
   handleUpdateStepDetails: ({
     duration,
@@ -290,6 +446,7 @@ interface RecipeCardProps {
 }
 
 const RecipeStepCard: FC<RecipeCardProps> = ({
+  handleDeleteStep,
   handleUpdateStepText,
   handleUpdateStepDetails,
   idx,
@@ -298,6 +455,8 @@ const RecipeStepCard: FC<RecipeCardProps> = ({
   recipeStep,
 }) => {
   const [isExpanded, setIsExpanded] = useState<boolean>(false);
+  const [isDeleteConfirmationModalOpen, setIsDeleteConfirmationModalOpen] =
+    useState<boolean>(false);
 
   return (
     <Pressable
@@ -305,6 +464,25 @@ const RecipeStepCard: FC<RecipeCardProps> = ({
         isExpanded ? () => {} : setIsExpanded((isExpanded) => !isExpanded)
       }
     >
+      <Modal transparent visible={isDeleteConfirmationModalOpen}>
+        <OuterModalContainerWrapper>
+          <InnerModalContainerWrapper>
+            <View>
+              <Text>Deleting</Text>
+              <Text>{recipeStep.description}</Text>
+              <Text>{recipeStep.duration} minutes</Text>
+              <Text>{recipeStep.type}</Text>
+              <Button
+                color="red"
+                onPress={() => {
+                  handleDeleteStep(idx);
+                }}
+                title="Really Delete"
+              />
+            </View>
+          </InnerModalContainerWrapper>
+        </OuterModalContainerWrapper>
+      </Modal>
       <View
         style={{
           backgroundColor: "white",
@@ -336,7 +514,9 @@ const RecipeStepCard: FC<RecipeCardProps> = ({
           <View>
             <View style={{ flexDirection: "row" }}>
               <StyledTextInput
-                defaultValue={recipeStep.duration?.toString() || ""}
+                defaultValue={
+                  !!recipeStep.duration ? `${recipeStep.duration} minutes` : ""
+                }
                 editable={false}
                 isFlex
                 placeholder="Step Duration"
@@ -417,7 +597,20 @@ const RecipeStepCard: FC<RecipeCardProps> = ({
                 </View>
               </Pressable>
             </View>
-            <View style={{ alignItems: "flex-end" }}>
+            <View
+              style={{
+                alignItems: "center",
+                flexDirection: "row",
+                justifyContent: "space-between",
+              }}
+            >
+              <Button
+                color="red"
+                onPress={() => {
+                  setIsDeleteConfirmationModalOpen(() => true);
+                }}
+                title="Delete"
+              />
               <Pressable
                 onPress={() => {
                   setIsExpanded(() => false);
