@@ -367,7 +367,7 @@ const RecipeStepCard: FC<RecipeCardProps> = ({
                       idx,
                     });
                   }}
-                  title="Uppies"
+                  title="Uppies!"
                 />
               </View>
             </View>
