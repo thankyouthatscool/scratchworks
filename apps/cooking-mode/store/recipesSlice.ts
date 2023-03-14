@@ -20,14 +20,15 @@ export const recipesSlice = createSlice({
   name: "recipes",
   initialState,
   reducers: {
+    // Recipes
+    addNewRecipe: (state, { payload }: PayloadAction<Recipe>) => {
+      state.recipes = [...state.recipes, payload];
+    },
     bulkSetRecipes: (state, { payload }: PayloadAction<Recipe[]>) => {
       state.recipes = payload;
     },
     setSelectedRecipe: (state, { payload }: PayloadAction<string | null>) => {
       state.selectedRecipe = payload;
-    },
-    setSelectedTags: (state, { payload }: PayloadAction<string[]>) => {
-      state.selectedTags = payload;
     },
     updateRecipe: (state, { payload }: PayloadAction<Recipe>) => {
       const targetRecipe = state.recipes.find(
@@ -41,12 +42,18 @@ export const recipesSlice = createSlice({
         ...state.recipes.slice(targetRecipeIndex + 1),
       ];
     },
+
+    // Tags
+    setSelectedTags: (state, { payload }: PayloadAction<string[]>) => {
+      state.selectedTags = payload;
+    },
   },
 });
 
 export const {
   // Data
   // Recipes
+  addNewRecipe,
   bulkSetRecipes,
   setSelectedRecipe,
   updateRecipe,

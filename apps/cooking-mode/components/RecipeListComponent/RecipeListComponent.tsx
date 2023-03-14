@@ -124,7 +124,10 @@ export const RecipeCardComponent: FC<{
               <Text style={{ color: "grey", fontSize: 10 }}>
                 {recipe.steps
                   .filter((step) => step.type === "prep")
-                  .reduce((acc, { duration }) => acc + duration, 0)}{" "}
+                  .reduce(
+                    (acc, { duration }) => acc + (!!duration ? duration : 0),
+                    0
+                  )}{" "}
                 mins prep time
               </Text>
             )}
@@ -132,7 +135,10 @@ export const RecipeCardComponent: FC<{
               <Text style={{ color: "grey", fontSize: 10 }}>
                 {recipe.steps
                   .filter((step) => step.type === "cook")
-                  .reduce((acc, { duration }) => acc + duration, 0)}{" "}
+                  .reduce(
+                    (acc, { duration }) => acc + (!!duration ? duration : 0),
+                    0
+                  )}{" "}
                 mins cook time
               </Text>
             )}

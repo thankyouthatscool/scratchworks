@@ -79,3 +79,18 @@ export const updateLocalStorageRecipe = async (updatedRecipe: Recipe) => {
 
   await AsyncStorage.setItem("recipes", JSON.stringify(updatedRecipes));
 };
+
+export const addNewLocalStorageRecipe = async (newRecipe: Recipe) => {
+  const existingRecipesString = await AsyncStorage.getItem("recipes");
+
+  if (!!existingRecipesString) {
+    const existingRecipes: Recipe[] = JSON.parse(existingRecipesString);
+
+    await AsyncStorage.setItem(
+      "recipes",
+      JSON.stringify([...existingRecipes, newRecipe])
+    );
+  } else {
+    await AsyncStorage.setItem("recipes", JSON.stringify([newRecipe]));
+  }
+};

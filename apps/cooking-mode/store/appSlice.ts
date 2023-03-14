@@ -2,7 +2,10 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 import type { AppSettings, AppState } from "@types";
 
-const initialState: AppState = { appSettings: { tempUnit: "celsius" } };
+const initialState: AppState = {
+  appSettings: { tempUnit: "celsius" },
+  isAddNewRecipeModalOpen: false,
+};
 
 export const appSlice = createSlice({
   name: "app",
@@ -14,7 +17,13 @@ export const appSlice = createSlice({
     ) => {
       state.appSettings = { ...state.appSettings, ...payload };
     },
+    setIsAddNewRecipeModalOpen: (
+      state,
+      { payload }: PayloadAction<boolean>
+    ) => {
+      state.isAddNewRecipeModalOpen = payload;
+    },
   },
 });
 
-export const { setAppSettings } = appSlice.actions;
+export const { setAppSettings, setIsAddNewRecipeModalOpen } = appSlice.actions;

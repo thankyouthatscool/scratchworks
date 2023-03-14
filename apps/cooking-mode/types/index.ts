@@ -24,6 +24,7 @@ export type AppSettings = {
 
 export type AppState = {
   appSettings: Partial<AppSettings>;
+  isAddNewRecipeModalOpen: boolean;
 };
 
 export type RecipeStep = {
