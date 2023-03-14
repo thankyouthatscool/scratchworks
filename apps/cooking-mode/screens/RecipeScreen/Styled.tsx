@@ -108,3 +108,120 @@ export const InnerModalContainerWrapper: FC<PropsWithChildren> = ({
     </View>
   );
 };
+
+export const RecipeStepTypeSelectorWrapper: FC<PropsWithChildren> = ({
+  children,
+}) => {
+  return (
+    <View
+      style={{
+        flexDirection: "row",
+        justifyContent: "space-between",
+        marginVertical: 8,
+      }}
+    >
+      {children}
+    </View>
+  );
+};
+
+export const RecipeStepTypeWrapper: FC<
+  PropsWithChildren & { isSelected: boolean }
+> = ({ children, isSelected }) => {
+  return (
+    <View
+      style={{
+        backgroundColor: "white",
+        borderColor: isSelected ? "green" : "white",
+        borderRadius: 5,
+        borderWidth: 2,
+        elevation: 2,
+        padding: 4,
+      }}
+    >
+      {children}
+    </View>
+  );
+};
+
+export const RecipeStepWrapper: FC<
+  PropsWithChildren & { isFirst: boolean; isLast: boolean }
+> = ({ children, isFirst, isLast }) => {
+  return (
+    <View
+      style={{
+        backgroundColor: "white",
+        borderRadius: 5,
+        elevation: 2,
+        marginVertical: 4,
+        marginTop: isFirst ? 0 : 4,
+        marginBottom: isLast ? 8 : 4,
+        padding: 8,
+      }}
+    >
+      {children}
+    </View>
+  );
+};
+
+export const RecipeStepTextWrapper: FC<PropsWithChildren> = ({ children }) => {
+  return (
+    <View
+      style={{
+        alignItems: "flex-start",
+        flexDirection: "row",
+        justifyContent: "space-between",
+      }}
+    >
+      {children}
+    </View>
+  );
+};
+
+export const RecipeActionButtonWrapper: FC<PropsWithChildren> = ({
+  children,
+}) => {
+  return (
+    <View
+      style={{
+        flexDirection: "row",
+        justifyContent: "flex-start",
+        marginTop: 8,
+      }}
+    >
+      {children}
+    </View>
+  );
+};
+
+export const RecipeTagsWrapper: FC<PropsWithChildren> = ({ children }) => {
+  return (
+    <View
+      style={{
+        alignItems: "center",
+        flexDirection: "row",
+        flexWrap: "wrap",
+        marginTop: 4,
+      }}
+    >
+      {children}
+    </View>
+  );
+};
+
+export const ExpandedRecipeCardFooterWrapper: FC<PropsWithChildren> = ({
+  children,
+}) => {
+  return (
+    <View
+      style={{
+        alignItems: "center",
+        borderWidth: 2,
+        flexDirection: "row",
+        justifyContent: "space-between",
+      }}
+    >
+      {children}
+    </View>
+  );
+};

@@ -1,15 +1,12 @@
 import MDIcon from "@expo/vector-icons/MaterialIcons";
 import { FC, useCallback, useEffect, useState } from "react";
 import {
-  Alert,
   Button,
   Keyboard,
-  KeyboardAvoidingView,
   Modal,
   Pressable,
   ScrollView,
   Text,
-  TextInput,
   ToastAndroid,
   View,
 } from "react-native";
@@ -19,10 +16,17 @@ import { useAppDispatch, useAppSelector } from "@hooks";
 import { updateRecipe } from "@store";
 import {
   BigTagWrapper,
+  ExpandedRecipeCardFooterWrapper,
   HeaderWrapper,
   InnerModalContainerWrapper,
   MainCardWrapper,
   OuterModalContainerWrapper,
+  RecipeActionButtonWrapper,
+  RecipeStepTypeSelectorWrapper,
+  RecipeStepTypeWrapper,
+  RecipeStepTextWrapper,
+  RecipeStepWrapper,
+  RecipeTagsWrapper,
   RootWrapper,
   StyledTextInput,
 } from "./Styled";
@@ -232,32 +236,16 @@ export const RecipeScreen: FC<RecipeScreenNavigationProps> = ({
                 </View>
               </View>
             </View>
-            <View
-              style={{
-                flexDirection: "row",
-                justifyContent: "space-between",
-                marginVertical: 8,
-              }}
-            >
+            <RecipeStepTypeSelectorWrapper>
               <Pressable
                 onPress={() => {
                   setNewStepData((data) => ({ ...data, type: "prep" }));
                 }}
                 style={{ flex: 1, marginRight: 4 }}
               >
-                <View
-                  style={{
-                    backgroundColor: "white",
-                    borderColor:
-                      newStepData.type === "prep" ? "green" : "white",
-                    borderRadius: 5,
-                    borderWidth: 2,
-                    elevation: 2,
-                    padding: 4,
-                  }}
-                >
+                <RecipeStepTypeWrapper isSelected={newStepData.type === "prep"}>
                   <Text>Prep</Text>
-                </View>
+                </RecipeStepTypeWrapper>
               </Pressable>
               <Pressable
                 onPress={() => {
@@ -265,21 +253,11 @@ export const RecipeScreen: FC<RecipeScreenNavigationProps> = ({
                 }}
                 style={{ flex: 1, marginLeft: 4 }}
               >
-                <View
-                  style={{
-                    backgroundColor: "white",
-                    borderColor:
-                      newStepData.type === "cook" ? "green" : "white",
-                    borderRadius: 5,
-                    borderWidth: 2,
-                    elevation: 2,
-                    padding: 4,
-                  }}
-                >
+                <RecipeStepTypeWrapper isSelected={newStepData.type === "cook"}>
                   <Text>Cook</Text>
-                </View>
+                </RecipeStepTypeWrapper>
               </Pressable>
-            </View>
+            </RecipeStepTypeSelectorWrapper>
             <View style={{ flexDirection: "row", justifyContent: "flex-end" }}>
               <Button
                 color="orange"
@@ -330,14 +308,7 @@ export const RecipeScreen: FC<RecipeScreenNavigationProps> = ({
               </Pressable>
             )}
           </HeaderWrapper>
-          <View
-            style={{
-              alignItems: "center",
-              flexDirection: "row",
-              flexWrap: "wrap",
-              marginTop: 4,
-            }}
-          >
+          <RecipeTagsWrapper>
             {targetRecipe?.tags.map((tag) => (
               <BigTagWrapper
                 isSelectedTag={selectedTags.includes(tag)}
@@ -369,7 +340,7 @@ export const RecipeScreen: FC<RecipeScreenNavigationProps> = ({
                 min cook time
               </Text>
             </View>
-          </View>
+          </RecipeTagsWrapper>
           <StyledTextInput
             defaultValue={recipeDescription}
             isMargin
@@ -412,15 +383,9 @@ export const RecipeScreen: FC<RecipeScreenNavigationProps> = ({
             title="Add Step"
           />
           {!!targetRecipe?.steps.length && (
-            <View
-              style={{
-                flexDirection: "row",
-                justifyContent: "flex-start",
-                marginTop: 8,
-              }}
-            >
+            <RecipeActionButtonWrapper>
               <Button title="Start" />
-            </View>
+            </RecipeActionButtonWrapper>
           )}
         </MainCardWrapper>
       </ScrollView>
@@ -483,24 +448,8 @@ const RecipeStepCard: FC<RecipeCardProps> = ({
           </InnerModalContainerWrapper>
         </OuterModalContainerWrapper>
       </Modal>
-      <View
-        style={{
-          backgroundColor: "white",
-          borderRadius: 5,
-          elevation: 2,
-          marginVertical: 4,
-          marginTop: isFirst ? 0 : 4,
-          marginBottom: isLast ? 8 : 4,
-          padding: 8,
-        }}
-      >
-        <View
-          style={{
-            alignItems: "flex-start",
-            flexDirection: "row",
-            justifyContent: "space-between",
-          }}
-        >
+      <RecipeStepWrapper isFirst={isFirst} isLast={isLast}>
+        <RecipeStepTextWrapper>
           <StyledTextInput
             defaultValue={recipeStep.description}
             editable={isExpanded}
@@ -509,7 +458,7 @@ const RecipeStepCard: FC<RecipeCardProps> = ({
             onChangeText={(newText) => handleUpdateStepText(newText, idx)}
             placeholder="Step Description"
           />
-        </View>
+        </RecipeStepTextWrapper>
         {!!isExpanded && (
           <View>
             <View style={{ flexDirection: "row" }}>
@@ -564,18 +513,9 @@ const RecipeStepCard: FC<RecipeCardProps> = ({
                 }}
                 style={{ flex: 1, marginRight: 4 }}
               >
-                <View
-                  style={{
-                    backgroundColor: "white",
-                    borderColor: recipeStep.type === "prep" ? "green" : "white",
-                    borderRadius: 5,
-                    borderWidth: 2,
-                    elevation: 2,
-                    padding: 4,
-                  }}
-                >
+                <RecipeStepTypeWrapper isSelected={recipeStep.type === "prep"}>
                   <Text>Prep</Text>
-                </View>
+                </RecipeStepTypeWrapper>
               </Pressable>
               <Pressable
                 onPress={() => {
@@ -583,27 +523,12 @@ const RecipeStepCard: FC<RecipeCardProps> = ({
                 }}
                 style={{ flex: 1, marginLeft: 4 }}
               >
-                <View
-                  style={{
-                    backgroundColor: "white",
-                    borderColor: recipeStep.type === "cook" ? "green" : "white",
-                    borderRadius: 5,
-                    borderWidth: 2,
-                    elevation: 2,
-                    padding: 4,
-                  }}
-                >
+                <RecipeStepTypeWrapper isSelected={recipeStep.type === "cook"}>
                   <Text>Cook</Text>
-                </View>
+                </RecipeStepTypeWrapper>
               </Pressable>
             </View>
-            <View
-              style={{
-                alignItems: "center",
-                flexDirection: "row",
-                justifyContent: "space-between",
-              }}
-            >
+            <ExpandedRecipeCardFooterWrapper>
               <Button
                 color="red"
                 onPress={() => {
@@ -618,10 +543,10 @@ const RecipeStepCard: FC<RecipeCardProps> = ({
               >
                 <MDIcon name="expand-less" size={32} />
               </Pressable>
-            </View>
+            </ExpandedRecipeCardFooterWrapper>
           </View>
         )}
-      </View>
+      </RecipeStepWrapper>
     </Pressable>
   );
 };
