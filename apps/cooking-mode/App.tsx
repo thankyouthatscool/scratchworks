@@ -1,6 +1,7 @@
 import { NavigationContainer } from "@react-navigation/native";
 import { StatusBar } from "expo-status-bar";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { Provider as PaperProvider } from "react-native-paper";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { Provider as ReduxProvider } from "react-redux";
 
@@ -53,12 +54,14 @@ export const App = () => {
   return (
     <ReduxProvider store={store}>
       <GestureHandlerRootView style={{ flex: 1 }}>
-        <NavigationContainer>
-          <StatusBar style="auto" />
-          <SafeAreaProvider>
-            <AppRoot />
-          </SafeAreaProvider>
-        </NavigationContainer>
+        <PaperProvider>
+          <NavigationContainer>
+            <StatusBar style="auto" />
+            <SafeAreaProvider>
+              <AppRoot />
+            </SafeAreaProvider>
+          </NavigationContainer>
+        </PaperProvider>
       </GestureHandlerRootView>
     </ReduxProvider>
   );
