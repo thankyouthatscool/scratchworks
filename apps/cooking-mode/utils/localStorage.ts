@@ -94,3 +94,15 @@ export const addNewLocalStorageRecipe = async (newRecipe: Recipe) => {
     await AsyncStorage.setItem("recipes", JSON.stringify([newRecipe]));
   }
 };
+
+export const deleteLocalStorageRecipe = async (recipeId: string) => {
+  const existingRecipesString = await AsyncStorage.getItem("recipes");
+
+  const existingRecipes: Recipe[] = JSON.parse(existingRecipesString!);
+
+  const remainingRecipes = existingRecipes.filter(
+    (recipe) => recipe.id !== recipeId
+  );
+
+  await AsyncStorage.setItem("recipes", JSON.stringify(remainingRecipes));
+};

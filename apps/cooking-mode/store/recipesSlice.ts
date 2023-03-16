@@ -42,6 +42,9 @@ export const recipesSlice = createSlice({
         ...state.recipes.slice(targetRecipeIndex + 1),
       ];
     },
+    deleteRecipe: (state, { payload }: PayloadAction<string>) => {
+      state.recipes = state.recipes.filter((recipe) => recipe.id !== payload);
+    },
 
     // Tags
     setSelectedTags: (state, { payload }: PayloadAction<string[]>) => {
@@ -57,6 +60,7 @@ export const {
   bulkSetRecipes,
   setSelectedRecipe,
   updateRecipe,
+  deleteRecipe,
 
   //Tags
   setSelectedTags,

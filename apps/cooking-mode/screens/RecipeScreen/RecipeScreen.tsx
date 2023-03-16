@@ -10,10 +10,14 @@ import {
   ToastAndroid,
   View,
 } from "react-native";
+import { IconButton, Menu } from "react-native-paper";
 import uuid from "react-native-uuid";
 
 import { useAppDispatch, useAppSelector } from "@hooks";
-import { updateRecipe } from "@store";
+import { deleteRecipe, updateRecipe } from "@store";
+import { Recipe, RecipeStep, RecipeScreenNavigationProps } from "@types";
+import { deleteLocalStorageRecipe, updateLocalStorageRecipe } from "@utils";
+
 import {
   BigTagWrapper,
   ExpandedRecipeCardFooterWrapper,
@@ -30,8 +34,6 @@ import {
   RootWrapper,
   StyledTextInput,
 } from "./Styled";
-import { Recipe, RecipeStep, RecipeScreenNavigationProps } from "@types";
-import { updateLocalStorageRecipe } from "@utils";
 
 // TODO: Long press on step to start from that step, or just press start to go from the beginning.
 // TODO: Eventually an ingredients list.
@@ -58,6 +60,7 @@ export const RecipeScreen: FC<RecipeScreenNavigationProps> = ({
   const [isAddRecipeStepModalOpen, setIsAddRecipeStepModalOpen] =
     useState<boolean>(false);
   const [isUpdateNeeded, setIsUpdateNeeded] = useState<boolean>(false);
+  const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
 
   const [newStepData, setNewStepData] = useState<{
     description: string;
@@ -138,6 +141,20 @@ export const RecipeScreen: FC<RecipeScreenNavigationProps> = ({
       },
       ...data.slice(idx + 1),
     ]);
+  };
+
+  const handleRecipeDelete = (recipeId: string) => {
+    setIsMenuOpen(() => false);
+
+    setTimeout(async () => {
+      navigation.navigate("Home");
+
+      dispatch(deleteRecipe(recipeId));
+
+      await deleteLocalStorageRecipe(recipeId);
+
+      ToastAndroid.show("Recipe deleted", ToastAndroid.LONG);
+    }, 200);
   };
 
   // Effects
@@ -307,6 +324,30 @@ export const RecipeScreen: FC<RecipeScreenNavigationProps> = ({
                 <MDIcon color="orange" name="save" size={24} />
               </Pressable>
             )}
+            <Menu
+              anchor={
+                <IconButton
+                  icon="dots-vertical"
+                  mode="contained"
+                  onPress={() => {
+                    setIsMenuOpen(() => true);
+                  }}
+                />
+              }
+              anchorPosition="bottom"
+              onDismiss={() => {
+                setIsMenuOpen(() => false);
+              }}
+              visible={isMenuOpen}
+            >
+              <Menu.Item
+                leadingIcon="delete"
+                onPress={() => {
+                  handleRecipeDelete(targetRecipe?.id!);
+                }}
+                title="Delete Recipe"
+              />
+            </Menu>
           </HeaderWrapper>
           <RecipeTagsWrapper>
             {targetRecipe?.tags.map((tag) => (
