@@ -1,10 +1,11 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
-import type { AppSettings, AppState } from "@types";
+import type { AppSettings, AppState, Recipe } from "@types";
 
 const initialState: AppState = {
   appSettings: { tempUnit: "celsius" },
   isAddNewRecipeModalOpen: false,
+  lastReversibleAction: null,
 };
 
 export const appSlice = createSlice({
@@ -23,7 +24,17 @@ export const appSlice = createSlice({
     ) => {
       state.isAddNewRecipeModalOpen = payload;
     },
+    setLastReversibleAction: (
+      state,
+      { payload }: PayloadAction<{ operation: string; data: Recipe }>
+    ) => {
+      state.lastReversibleAction = payload;
+    },
   },
 });
 
-export const { setAppSettings, setIsAddNewRecipeModalOpen } = appSlice.actions;
+export const {
+  setAppSettings,
+  setIsAddNewRecipeModalOpen,
+  setLastReversibleAction,
+} = appSlice.actions;

@@ -10,7 +10,7 @@ import {
   ToastAndroid,
   View,
 } from "react-native";
-import { IconButton, Menu } from "react-native-paper";
+import { Button as RNPButton, IconButton, Menu } from "react-native-paper";
 import uuid from "react-native-uuid";
 
 import { useAppDispatch, useAppSelector } from "@hooks";
@@ -58,6 +58,8 @@ export const RecipeScreen: FC<RecipeScreenNavigationProps> = ({
     useState<RecipeStep | null>(null);
 
   const [isAddRecipeStepModalOpen, setIsAddRecipeStepModalOpen] =
+    useState<boolean>(false);
+  const [isDeleteRecipeModalOpen, setIsDeleteRecipeModalOpen] =
     useState<boolean>(false);
   const [isUpdateNeeded, setIsUpdateNeeded] = useState<boolean>(false);
   const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
@@ -186,6 +188,49 @@ export const RecipeScreen: FC<RecipeScreenNavigationProps> = ({
 
   return (
     <RootWrapper>
+      <Modal
+        animationType="fade"
+        hardwareAccelerated
+        transparent
+        visible={isDeleteRecipeModalOpen}
+      >
+        <OuterModalContainerWrapper backgroundDimmed>
+          <InnerModalContainerWrapper>
+            <Text style={{ fontSize: 16 }}>Deleting</Text>
+            <Text
+              style={{
+                color: "red",
+                fontSize: 16,
+                fontWeight: "500",
+                marginBottom: 8,
+              }}
+            >
+              {targetRecipe?.name}
+            </Text>
+            <View style={{ flexDirection: "row", justifyContent: "flex-end" }}>
+              <RNPButton
+                mode="contained-tonal"
+                onPress={() => {
+                  setIsDeleteRecipeModalOpen(() => false);
+                }}
+              >
+                Cancel
+              </RNPButton>
+              <RNPButton
+                mode="contained"
+                onPress={() => {
+                  setIsDeleteRecipeModalOpen(() => false);
+
+                  handleRecipeDelete(targetRecipe?.id!);
+                }}
+                style={{ marginLeft: 8 }}
+              >
+                Delete
+              </RNPButton>
+            </View>
+          </InnerModalContainerWrapper>
+        </OuterModalContainerWrapper>
+      </Modal>
       <Modal
         animationType="slide"
         hardwareAccelerated
@@ -343,7 +388,8 @@ export const RecipeScreen: FC<RecipeScreenNavigationProps> = ({
               <Menu.Item
                 leadingIcon="delete"
                 onPress={() => {
-                  handleRecipeDelete(targetRecipe?.id!);
+                  setIsMenuOpen(() => false);
+                  setIsDeleteRecipeModalOpen(() => true);
                 }}
                 title="Delete Recipe"
               />

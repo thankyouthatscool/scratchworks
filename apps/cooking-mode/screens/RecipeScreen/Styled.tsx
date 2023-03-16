@@ -76,13 +76,14 @@ export const BigTagWrapper: FC<
   );
 };
 
-export const OuterModalContainerWrapper: FC<PropsWithChildren> = ({
-  children,
-}) => {
+export const OuterModalContainerWrapper: FC<
+  PropsWithChildren & { backgroundDimmed?: boolean }
+> = ({ children, backgroundDimmed: isBackgroundDimmed }) => {
   return (
     <View
       style={{
         alignItems: "center",
+        ...(isBackgroundDimmed && { backgroundColor: "rgba(0,0,0,0.6)" }),
         height: "100%",
         justifyContent: "center",
       }}
@@ -99,6 +100,7 @@ export const InnerModalContainerWrapper: FC<PropsWithChildren> = ({
     <View
       style={{
         backgroundColor: "white",
+        borderRadius: 5,
         elevation: 10,
         padding: 8,
         width: "80%",
