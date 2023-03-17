@@ -1,5 +1,6 @@
 import { useCallback, useState } from "react";
-import { Button, Modal, Text, TextInput, View } from "react-native";
+import { Modal, Text, TextInput, View } from "react-native";
+import { Button } from "react-native-paper";
 import uuid from "react-native-uuid";
 
 import { useAppDispatch, useAppSelector } from "@hooks";
@@ -87,22 +88,23 @@ export const AddNewRecipeModal = () => {
           />
           <AddNewRecipeModalFooterButtonContainer>
             <Button
-              color="orange"
               onPress={() => {
                 dispatch(setIsAddNewRecipeModalOpen(false));
               }}
-              title="Cancel"
-            />
-            <View style={{ marginLeft: 8 }}>
-              <Button
-                disabled={!newRecipeData.name}
-                color="green"
-                onPress={() => {
-                  handleAddNewRecipe();
-                }}
-                title="Add"
-              />
-            </View>
+              mode="contained-tonal"
+            >
+              Cancel
+            </Button>
+            <Button
+              disabled={!newRecipeData.name}
+              mode="contained"
+              onPress={() => {
+                handleAddNewRecipe();
+              }}
+              style={{ marginLeft: 8 }}
+            >
+              Add
+            </Button>
           </AddNewRecipeModalFooterButtonContainer>
         </AddNewRecipeModalInnerWrapper>
       </AddNewRecipeModalOuterWrapper>

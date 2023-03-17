@@ -1,4 +1,5 @@
-import { FC } from "react";
+import { FC, useState } from "react";
+import { Menu } from "react-native-paper";
 
 import { AddNewRecipeModal } from "@components/AddNewRecipeModal";
 import { RecipesControlBar } from "@components/RecipesControlBar";
@@ -16,6 +17,12 @@ export const HomeScreen: FC<HomeScreenNavigationProps> = ({ navigation }) => {
 
   const { isAddNewRecipeModalOpen } = useAppSelector(({ app }) => app);
 
+  const [isFABMenuOpen, setIsFABMenuOpen] = useState<boolean>(false);
+  const [coords, setCoords] = useState<{ x: number; y: number }>({
+    x: 0,
+    y: 0,
+  });
+
   return (
     <ScreenWrapper>
       <TagSelectorComponent />
@@ -24,11 +31,28 @@ export const HomeScreen: FC<HomeScreenNavigationProps> = ({ navigation }) => {
       <RecipeListComponent nav={navigation} />
       <StyledFloatingButton
         icon="plus"
-        onPress={() => {
-          dispatch(setIsAddNewRecipeModalOpen(true));
+        onPress={({ nativeEvent: { pageX, pageY } }) => {
+          setCoords(() => ({ x: pageX + 999, y: pageY + 999 }));
+          setIsFABMenuOpen(() => true);
         }}
         visible={!isAddNewRecipeModalOpen}
       />
+      <Menu
+        anchor={coords}
+        anchorPosition="bottom"
+        onDismiss={() => setIsFABMenuOpen(() => false)}
+        visible={isFABMenuOpen}
+      >
+        <Menu.Item
+          leadingIcon="plus"
+          onPress={() => {
+            dispatch(setIsAddNewRecipeModalOpen(true));
+
+            setIsFABMenuOpen(() => false);
+          }}
+          title="Add Recipe"
+        />
+      </Menu>
     </ScreenWrapper>
   );
 };
