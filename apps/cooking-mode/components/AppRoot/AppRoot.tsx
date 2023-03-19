@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { useAppDispatch, useAppSelector } from "@hooks";
 import { RecipeScreen } from "@screens/RecipeScreen";
 import { HomeScreen } from "@screens/HomeScreen";
+import { RecipePlayerScreen } from "@screens/RecipePlayerScreen";
 import { SettingsScreen } from "@screens/SettingsScreen";
 import { bulkSetRecipes, setAppSettings } from "@store";
 import type { RootDrawerNavigatorProps } from "@types";
@@ -41,6 +42,7 @@ export const AppRoot = () => {
           drawerItemStyle: { display: !!selectedRecipe ? "flex" : "none" },
         }}
       />
+      <RootDrawer.Screen component={RecipePlayerScreen} name="RecipePlayer" />
       <RootDrawer.Screen component={SettingsScreen} name="Settings" />
     </RootDrawer.Navigator>
   );

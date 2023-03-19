@@ -3,6 +3,7 @@ import { DrawerScreenProps } from "@react-navigation/drawer";
 export type RootDrawerNavigatorProps = {
   Home: undefined;
   Recipe: undefined;
+  RecipePlayer: undefined;
   Settings: undefined;
 };
 
@@ -14,6 +15,11 @@ export type HomeScreenNavigationProps = DrawerScreenProps<
 export type RecipeScreenNavigationProps = DrawerScreenProps<
   RootDrawerNavigatorProps,
   "Recipe"
+>;
+
+export type RecipePlayerScreenNavigationProps = DrawerScreenProps<
+  RootDrawerNavigatorProps,
+  "RecipePlayer"
 >;
 
 export type TempUnits = "celsius" | "fahrenheit" | "kelvin";

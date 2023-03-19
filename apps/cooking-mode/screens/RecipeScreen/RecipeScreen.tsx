@@ -364,36 +364,39 @@ export const RecipeScreen: FC<RecipeScreenNavigationProps> = ({
                 setRecipeName(() => newName);
               }}
             />
-            {!!isUpdateNeeded && (
-              <Pressable onPress={handleRecipeUpdate}>
-                <MDIcon color="orange" name="save" size={24} />
-              </Pressable>
-            )}
-            <Menu
-              anchor={
-                <IconButton
-                  icon="dots-vertical"
-                  mode="contained"
-                  onPress={() => {
-                    setIsMenuOpen(() => true);
-                  }}
-                />
-              }
-              anchorPosition="bottom"
-              onDismiss={() => {
-                setIsMenuOpen(() => false);
-              }}
-              visible={isMenuOpen}
-            >
-              <Menu.Item
-                leadingIcon="delete"
-                onPress={() => {
+            <View style={{ alignItems: "center", flexDirection: "row" }}>
+              {!!isUpdateNeeded && (
+                <Pressable onPress={handleRecipeUpdate}>
+                  <MDIcon color="orange" name="save" size={24} />
+                </Pressable>
+              )}
+              <Menu
+                anchor={
+                  <IconButton
+                    icon="dots-vertical"
+                    mode="contained"
+                    onPress={() => {
+                      setIsMenuOpen(() => true);
+                    }}
+                    style={{ marginLeft: 8 }}
+                  />
+                }
+                anchorPosition="bottom"
+                onDismiss={() => {
                   setIsMenuOpen(() => false);
-                  setIsDeleteRecipeModalOpen(() => true);
                 }}
-                title="Delete Recipe"
-              />
-            </Menu>
+                visible={isMenuOpen}
+              >
+                <Menu.Item
+                  leadingIcon="delete"
+                  onPress={() => {
+                    setIsMenuOpen(() => false);
+                    setIsDeleteRecipeModalOpen(() => true);
+                  }}
+                  title="Delete Recipe"
+                />
+              </Menu>
+            </View>
           </HeaderWrapper>
           <RecipeTagsWrapper>
             {targetRecipe?.tags.map((tag) => (
@@ -471,7 +474,12 @@ export const RecipeScreen: FC<RecipeScreenNavigationProps> = ({
           />
           {!!targetRecipe?.steps.length && (
             <RecipeActionButtonWrapper>
-              <Button title="Start" />
+              <Button
+                onPress={() => {
+                  navigation.navigate("RecipePlayer");
+                }}
+                title="Start"
+              />
             </RecipeActionButtonWrapper>
           )}
         </MainCardWrapper>
@@ -616,13 +624,16 @@ const RecipeStepCard: FC<RecipeCardProps> = ({
               </Pressable>
             </View>
             <ExpandedRecipeCardFooterWrapper>
-              <Button
-                color="red"
+              <RNPButton
+                buttonColor="red"
+                mode="contained"
                 onPress={() => {
                   setIsDeleteConfirmationModalOpen(() => true);
                 }}
-                title="Delete"
-              />
+                textColor="white"
+              >
+                Delete
+              </RNPButton>
               <Pressable
                 onPress={() => {
                   setIsExpanded(() => false);

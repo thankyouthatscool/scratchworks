@@ -218,7 +218,6 @@ export const ExpandedRecipeCardFooterWrapper: FC<PropsWithChildren> = ({
     <View
       style={{
         alignItems: "center",
-        borderWidth: 2,
         flexDirection: "row",
         justifyContent: "space-between",
       }}
