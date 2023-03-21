@@ -1076,24 +1076,24 @@
     deepmerge "^3.2.0"
     hoist-non-react-statics "^3.3.0"
 
-"@clerk/clerk-expo@^0.12.4":
-  version "0.12.4"
-  resolved "https://registry.yarnpkg.com/@clerk/clerk-expo/-/clerk-expo-0.12.4.tgz#f59240d0b414b79f63873363db641dee739bb0c2"
-  integrity sha512-HVjeB6aLOpjbZupmThexE/LhVX9qLYlo4pB7o//MP/fG49mvps1iwniVhoMEJw8RMDNZhk6nB3812qojKWYhxg==
+"@clerk/clerk-expo@^0.12.19":
+  version "0.12.19"
+  resolved "https://registry.yarnpkg.com/@clerk/clerk-expo/-/clerk-expo-0.12.19.tgz#19699d8f892d68e47ed60b471700c79ab193da50"
+  integrity sha512-VfWmEcGIW+q3KRzNIRVZTgPu1wFgssDbb0sxsdds5SOrm20bqQ/scHv7vliXXTfnioklBxOnE0Ut/icfLdGA4g==
   dependencies:
-    "@clerk/clerk-js" "^4.27.2"
-    "@clerk/clerk-react" "^4.11.4"
+    "@clerk/clerk-js" "^4.32.6"
+    "@clerk/clerk-react" "^4.12.8"
     base-64 "1.0.0"
     react-native-url-polyfill "1.3.0"
 
-"@clerk/clerk-js@^4.27.2":
-  version "4.28.1"
-  resolved "https://registry.yarnpkg.com/@clerk/clerk-js/-/clerk-js-4.28.1.tgz#f6a88e1b65691f5325228c2fb553040673d1ddd9"
-  integrity sha512-9oN7z/d8bo0g/Qjz2GHLrxYWxrFEt8Xijksnskmy7aUsWKh/MedY46ct1yA9+Gae0uFDRnsOoNRG+aLzJXWPGg==
+"@clerk/clerk-js@^4.32.6":
+  version "4.32.6"
+  resolved "https://registry.yarnpkg.com/@clerk/clerk-js/-/clerk-js-4.32.6.tgz#3d3ffba65fa7740012cd936502a4c862e3d050e6"
+  integrity sha512-sFDbqMLfB367kWgvEEoL/XXU12PZVn05GTKOsPXnIMCwgfvpXE5taxhqTBT7xIYau9nKEsQsEbgKp1aee14t0w==
   dependencies:
-    "@clerk/localizations" "^1.5.1"
-    "@clerk/shared" "^0.12.1"
-    "@clerk/types" "^3.28.3"
+    "@clerk/localizations" "^1.7.4"
+    "@clerk/shared" "^0.13.5"
+    "@clerk/types" "^3.31.1"
     "@emotion/cache" "11.10.5"
     "@emotion/react" "11.10.5"
     "@floating-ui/react" "0.19.0"
@@ -1103,36 +1103,34 @@
     dequal "2.0.3"
     qrcode.react "3.1.0"
     qs "6.11.0"
-    react "18.2.0"
-    react-dom "18.2.0"
     regenerator-runtime "0.13.11"
 
-"@clerk/clerk-react@^4.11.4":
-  version "4.11.6"
-  resolved "https://registry.yarnpkg.com/@clerk/clerk-react/-/clerk-react-4.11.6.tgz#b4da2bf80b318c0c3021bde1843da7dcdae7f1a7"
-  integrity sha512-2k1OQBw8nHPTpRmlNGx/ce+lHwiu3D2Zh8i+XNIS9tviAG5dmT3LZmY8kM4K9Dew0FkZqvINUGyvlEFjOMFnDw==
+"@clerk/clerk-react@^4.12.8":
+  version "4.12.8"
+  resolved "https://registry.yarnpkg.com/@clerk/clerk-react/-/clerk-react-4.12.8.tgz#47851eb037662c730d8328ac46459c9d73f6f04b"
+  integrity sha512-1cou6ZQ8OGb1wc0M3nwTxvSVFqt8ZCgI+mBDy4+BBYhKaP5INenmg6HmEMCswq3YzsHTiHFTIYMAcM8oGkku4Q==
   dependencies:
-    "@clerk/shared" "^0.12.1"
-    "@clerk/types" "^3.28.3"
+    "@clerk/shared" "^0.13.5"
+    "@clerk/types" "^3.31.1"
     swr "1.3.0"
     tslib "2.4.1"
 
-"@clerk/localizations@^1.5.1":
-  version "1.5.1"
-  resolved "https://registry.yarnpkg.com/@clerk/localizations/-/localizations-1.5.1.tgz#cfb92dbb46ca6862f7604e318533848e091bf7da"
-  integrity sha512-YGsE6GR0HJOfntRRrOQVbatQof8iskeI0mIefkccV48oa3M72j5qYIkrkeP6GUSjKkRDcih84SkxaA9cQv59VQ==
+"@clerk/localizations@^1.7.4":
+  version "1.7.4"
+  resolved "https://registry.yarnpkg.com/@clerk/localizations/-/localizations-1.7.4.tgz#a3a5b320e999b75de913177d2fff40c91c26d146"
+  integrity sha512-Kl0oSOZkkFO6S4n/npv+YHg5lA+kFPvEaGHeocidmALfE12AdjorddFl2jvgQCmu/t/R7bkJ82zf4M+AKSvrrw==
   dependencies:
-    "@clerk/types" "^3.28.3"
+    "@clerk/types" "^3.31.1"
 
-"@clerk/shared@^0.12.1":
-  version "0.12.1"
-  resolved "https://registry.yarnpkg.com/@clerk/shared/-/shared-0.12.1.tgz#b43ecca5da52a06db20452cd6851e43ea6583f26"
-  integrity sha512-vcnzgGYRO4/z5/4FvHryI14SqqqU4aSmki2aDRxFyFG1QjBFDykfrzAgM9ztCU1IBnzFasiNp0alCBIes3bvwQ==
+"@clerk/shared@^0.13.5":
+  version "0.13.5"
+  resolved "https://registry.yarnpkg.com/@clerk/shared/-/shared-0.13.5.tgz#85d06e228a30a9922214c46aebf6546a110dda10"
+  integrity sha512-AMh9FqoBr7YIRwmAC0FwWHLIqbbqICOWrxuPOr93WXe3Cm3HZVwIpXkaS7Qc+yMKJaaeFj+M7GkVNX7NohsRsQ==
 
-"@clerk/types@^3.28.3":
-  version "3.28.3"
-  resolved "https://registry.yarnpkg.com/@clerk/types/-/types-3.28.3.tgz#43137875f72e6a26d9a544e6733ad851d5e79d56"
-  integrity sha512-ENzM0J9izfVW2tG0XQW6vLKT4b/jYkQq5IQVLGpml4rEXa0OAe1WKdxrMQYGH3S8pH0w9yUKQdex19ePQk5eCQ==
+"@clerk/types@^3.31.1":
+  version "3.31.1"
+  resolved "https://registry.yarnpkg.com/@clerk/types/-/types-3.31.1.tgz#6b31f5682b8c79d3b910e712475cb216d535f062"
+  integrity sha512-7xQtN1vUKq5kTdIwcbypiL2Qu9OU+1zS8LtIRFKgxAWt7lO2RW3yZMRVJvoPaTXyGnszyDcOla5lAHVHmKt6aQ==
   dependencies:
     csstype "3.1.1"
 
@@ -7999,14 +7997,6 @@ react-dom@18.1.0:
     loose-envify "^1.1.0"
     scheduler "^0.22.0"
 
-react-dom@18.2.0:
-  version "18.2.0"
-  resolved "https://registry.yarnpkg.com/react-dom/-/react-dom-18.2.0.tgz#22aaf38708db2674ed9ada224ca4aa708d821e3d"
-  integrity sha512-6IMTriUmvsjHUjNtEDudZfuDQUoWXVxKHhlEGSk81n4YFS+r/Kl99wXiwlVXtPBtJenozv2P+hxDsw9eA7Xo6g==
-  dependencies:
-    loose-envify "^1.1.0"
-    scheduler "^0.23.0"
-
 react-freeze@^1.0.0:
   version "1.0.3"
   resolved "https://registry.yarnpkg.com/react-freeze/-/react-freeze-1.0.3.tgz#5e3ca90e682fed1d73a7cb50c2c7402b3e85618d"
@@ -8219,13 +8209,6 @@ react@18.1.0:
   version "18.1.0"
   resolved "https://registry.yarnpkg.com/react/-/react-18.1.0.tgz#6f8620382decb17fdc5cc223a115e2adbf104890"
   integrity sha512-4oL8ivCz5ZEPyclFQXaNksK3adutVS8l2xzZU0cqEFrE9Sb7fC0EFK5uEk74wIreL1DERyjvsU915j1pcT2uEQ==
-  dependencies:
-    loose-envify "^1.1.0"
-
-react@18.2.0:
-  version "18.2.0"
-  resolved "https://registry.yarnpkg.com/react/-/react-18.2.0.tgz#555bd98592883255fa00de14f1151a917b5d77d5"
-  integrity sha512-/3IjMdb2L9QbBdWiW5e3P2/npwMBaU9mHCSCUzNln0ZCYbcfTsGbTJrU/kGemdH2IWmB2ioZ+zkxtmq6g09fGQ==
   dependencies:
     loose-envify "^1.1.0"
 
@@ -8589,13 +8572,6 @@ scheduler@^0.22.0:
   version "0.22.0"
   resolved "https://registry.yarnpkg.com/scheduler/-/scheduler-0.22.0.tgz#83a5d63594edf074add9a7198b1bae76c3db01b8"
   integrity sha512-6QAm1BgQI88NPYymgGQLCZgvep4FyePDWFpXVK+zNSUgHwlqpJy8VEh8Et0KxTACS4VWwMousBElAZOH9nkkoQ==
-  dependencies:
-    loose-envify "^1.1.0"
-
-scheduler@^0.23.0:
-  version "0.23.0"
-  resolved "https://registry.yarnpkg.com/scheduler/-/scheduler-0.23.0.tgz#ba8041afc3d30eb206a487b6b384002e4e61fdfe"
-  integrity sha512-CtuThmgHNg7zIZWAXi3AsyIzA3n4xx7aNyjwC2VJldO2LMVDhFK+63xGqq6CsJH4rTAt6/M+N4GhZiDYPx9eUw==
   dependencies:
     loose-envify "^1.1.0"
 

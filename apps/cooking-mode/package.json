@@ -6,7 +6,7 @@
     "start": "dotenv -e .env expo start"
   },
   "dependencies": {
-    "@clerk/clerk-expo": "^0.12.4",
+    "@clerk/clerk-expo": "^0.12.19",
     "@react-native-async-storage/async-storage": "~1.17.3",
     "@react-native-picker/picker": "2.4.8",
     "@react-navigation/drawer": "^6.6.0",

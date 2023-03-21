@@ -1,4 +1,6 @@
+import { ClerkProvider } from "@clerk/clerk-expo";
 import { NavigationContainer } from "@react-navigation/native";
+import Constants from "expo-constants";
 import { StatusBar } from "expo-status-bar";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { Provider as PaperProvider } from "react-native-paper";
@@ -52,6 +54,9 @@ const pop = async () => {
 
 export const App = () => {
   return (
+    // <ClerkProvider
+    //   publishableKey={Constants.expoConfig?.extra?.CLERK_PUBLISHABLE_KEY!}
+    // >
     <ReduxProvider store={store}>
       <GestureHandlerRootView style={{ flex: 1 }}>
         <PaperProvider>
@@ -64,5 +69,6 @@ export const App = () => {
         </PaperProvider>
       </GestureHandlerRootView>
     </ReduxProvider>
+    // </ClerkProvider>
   );
 };
