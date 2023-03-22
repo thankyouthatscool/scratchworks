@@ -31,6 +31,7 @@ export type AppSettings = {
 export type AppState = {
   appSettings: Partial<AppSettings>;
   isAddNewRecipeModalOpen: boolean;
+  isAppVisible: boolean;
   lastReversibleAction: { operation: string; data: Recipe } | null;
 };
 

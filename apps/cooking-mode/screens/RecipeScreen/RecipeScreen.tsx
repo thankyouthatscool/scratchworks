@@ -365,6 +365,16 @@ export const RecipeScreen: FC<RecipeScreenNavigationProps> = ({
               }}
             />
             <View style={{ alignItems: "center", flexDirection: "row" }}>
+              {!!targetRecipe?.steps.length && (
+                <Pressable
+                  onPress={() => {
+                    navigation.navigate("RecipePlayer");
+                  }}
+                >
+                  <MDIcon name="play-arrow" size={24} />
+                </Pressable>
+              )}
+
               {!!isUpdateNeeded && (
                 <Pressable onPress={handleRecipeUpdate}>
                   <MDIcon color="orange" name="save" size={24} />
