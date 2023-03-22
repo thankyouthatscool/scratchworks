@@ -6,6 +6,7 @@ const initialState: AppState = {
   appSettings: { tempUnit: "celsius" },
   isAddNewRecipeModalOpen: false,
   isAppVisible: true,
+  isRecipeStepsDoneModalOpen: false,
   lastReversibleAction: null,
 };
 
@@ -28,6 +29,12 @@ export const appSlice = createSlice({
     setIsAppVisible: (state, { payload }: PayloadAction<boolean>) => {
       state.isAppVisible = payload;
     },
+    setIsRecipeStepsDoneModalOpen: (
+      state,
+      { payload }: PayloadAction<boolean>
+    ) => {
+      state.isRecipeStepsDoneModalOpen = payload;
+    },
     setLastReversibleAction: (
       state,
       { payload }: PayloadAction<{ operation: string; data: Recipe }>
@@ -41,5 +48,6 @@ export const {
   setAppSettings,
   setIsAddNewRecipeModalOpen,
   setIsAppVisible,
+  setIsRecipeStepsDoneModalOpen,
   setLastReversibleAction,
 } = appSlice.actions;

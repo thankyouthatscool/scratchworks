@@ -1,22 +1,22 @@
-import { FC, useCallback, useEffect, useReducer, useState } from "react";
-import { AppState, ScrollView, Text, View } from "react-native";
-import { Button, Card } from "react-native-paper";
-
 import AsyncStorage from "@react-native-async-storage/async-storage";
-
-import { intervalToDuration, add } from "date-fns";
-
+import { intervalToDuration } from "date-fns";
+import { FC, useCallback, useEffect, useState } from "react";
+import { CountdownCircleTimer } from "react-native-countdown-circle-timer";
+import { ScrollView, Text, View } from "react-native";
+import { Button } from "react-native-paper";
 import uuid from "react-native-uuid";
 
-import { CountdownCircleTimer } from "react-native-countdown-circle-timer";
-
+import { RecipeStepsDoneModal } from "@components/RecipeStepsDoneModal";
 import { ScreenWrapper } from "@components/shared/ScreenWrapper";
-import { useAppSelector } from "@hooks";
+import { useAppDispatch, useAppSelector } from "@hooks";
+import { setIsRecipeStepsDoneModalOpen } from "@store";
 import { Recipe, RecipePlayerScreenNavigationProps } from "@types";
 
 export const RecipePlayerScreen: FC<RecipePlayerScreenNavigationProps> = ({
   navigation,
 }) => {
+  const dispatch = useAppDispatch();
+
   const { isAppVisible, recipes, selectedRecipe } = useAppSelector(
     ({ app, recipes }) => ({
       ...app,
@@ -27,21 +27,19 @@ export const RecipePlayerScreen: FC<RecipePlayerScreenNavigationProps> = ({
   const [currentStep, setCurrentStep] = useState<number>(0);
   const [targetRecipe, setTargetRecipe] = useState<Recipe | null>(null);
 
-  const [isTimerRunning, setIsTimerRunning] = useState<boolean>(false);
-  const [timeRemaining, setTimeRemaining] = useState<number | null>(null);
-
-  const [timerKey, setTimerKey] = useState(uuid.v4() as string);
-
-  const [remainingTime, setRemainingTime] = useState<number | undefined>(
-    undefined
-  );
+  // Timer Related
   const [initialTimeRemaining, setInitialTimeRemaining] = useState<
     number | undefined
   >(undefined);
+  const [isTimerRunning, setIsTimerRunning] = useState<boolean>(false);
+  const [remainingTime, setRemainingTime] = useState<number | undefined>(
+    undefined
+  );
+  const [timerKey, setTimerKey] = useState(uuid.v4() as string);
+  const [timeRemaining, setTimeRemaining] = useState<number | null>(null);
 
   const handleResetTimer = (resetAction?: "resume" | "pause") => {
-    setTimeRemaining(() => timeRemaining);
-    setInitialTimeRemaining(() => timeRemaining);
+    setInitialTimeRemaining(() => timeRemaining!);
 
     setTimerKey(() => uuid.v4() as string);
 
@@ -55,8 +53,6 @@ export const RecipePlayerScreen: FC<RecipePlayerScreenNavigationProps> = ({
       const lastOutTime = new Date(lastOutTimeString!);
 
       const inTime = new Date();
-
-      console.log(lastOutTime, inTime);
 
       const { hours, minutes, seconds } = intervalToDuration({
         start: lastOutTime,
@@ -101,21 +97,21 @@ export const RecipePlayerScreen: FC<RecipePlayerScreenNavigationProps> = ({
 
   return (
     <ScreenWrapper isPadded>
-      <Button
-        mode="contained"
-        onPress={() => {
-          navigation.navigate("Home");
-        }}
-      >
-        Home
-      </Button>
+      <View style={{ flex: 1 }}>
+        <ScrollView>
+          <Text style={{ fontSize: 16, fontWeight: "500" }}>
+            {targetRecipe?.name}
+          </Text>
+          <Text>Duration: {targetRecipe?.steps[currentStep].duration}</Text>
+          <Text>Type: {targetRecipe?.steps[currentStep].type}</Text>
+          <Text>{targetRecipe?.steps[currentStep].description}</Text>
+        </ScrollView>
+      </View>
       {!!timeRemaining && (
         <View
           style={{
-            alignSelf: "flex-start",
-            position: "absolute",
-            bottom: 75,
-            left: 100,
+            alignItems: "center",
+            marginBottom: 8,
           }}
         >
           <CountdownCircleTimer
@@ -128,25 +124,27 @@ export const RecipePlayerScreen: FC<RecipePlayerScreenNavigationProps> = ({
             onUpdate={(e) => {
               setRemainingTime(() => e);
             }}
+            size={88}
             onComplete={() => handleResetTimer("pause")}
           >
-            {({ remainingTime }) => <Text>{remainingTime}</Text>}
+            {({ remainingTime }) => {
+              const toHHMMSS = (numSeconds: number) => {
+                const hours = Math.floor(numSeconds / 3600);
+                const minutes = Math.floor((numSeconds - hours * 3600) / 60);
+                const seconds = numSeconds - hours * 3600 - minutes * 60;
+
+                return `${!!minutes ? `${minutes} m ` : ""}${seconds}s`;
+              };
+
+              return <Text>{toHHMMSS(remainingTime)}</Text>;
+            }}
           </CountdownCircleTimer>
         </View>
       )}
-      <View style={{ flex: 1 }}>
-        <ScrollView>
-          <Text>{targetRecipe?.name}</Text>
-          <Text>Duration: {targetRecipe?.steps[currentStep].duration}</Text>
-          <Text>Type: {targetRecipe?.steps[currentStep].type}</Text>
-          <Text>{targetRecipe?.steps[currentStep].description}</Text>
-          <Text>Time Remaining: {timeRemaining} </Text>
-        </ScrollView>
-      </View>
       <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
         <Button
           disabled={!currentStep}
-          mode="contained"
+          mode="contained-tonal"
           onPress={() => {
             setCurrentStep((currentStep) =>
               currentStep === 0 ? 0 : currentStep - 1
@@ -167,29 +165,42 @@ export const RecipePlayerScreen: FC<RecipePlayerScreenNavigationProps> = ({
               setIsTimerRunning((isTimerRunning) => !isTimerRunning);
             }}
           >
-            {!!isTimerRunning ? "Stop" : "Start"}
+            {!!isTimerRunning ? "Pause" : "Start"}
           </Button>
         )}
-        <Button
-          disabled={
-            !!targetRecipe
-              ? currentStep === targetRecipe.steps.length - 1
-              : true
-          }
-          mode="contained"
-          onPress={() => {
-            setCurrentStep((currentStep) =>
-              currentStep < targetRecipe?.steps.length! - 1
-                ? currentStep + 1
-                : currentStep
-            );
+        {!!targetRecipe && currentStep !== targetRecipe.steps.length - 1 && (
+          <Button
+            disabled={
+              !!targetRecipe
+                ? currentStep === targetRecipe.steps.length - 1
+                : true
+            }
+            mode="contained"
+            onPress={() => {
+              setCurrentStep((currentStep) =>
+                currentStep < targetRecipe?.steps.length! - 1
+                  ? currentStep + 1
+                  : currentStep
+              );
 
-            handleResetTimer("pause");
-          }}
-        >
-          Next
-        </Button>
+              handleResetTimer("pause");
+            }}
+          >
+            Next
+          </Button>
+        )}
+        {currentStep === targetRecipe?.steps.length! - 1 && (
+          <Button
+            onPress={() => {
+              console.log("opening the recipes steps done modal");
+              dispatch(setIsRecipeStepsDoneModalOpen(true));
+            }}
+          >
+            Done
+          </Button>
+        )}
       </View>
+      <RecipeStepsDoneModal />
     </ScreenWrapper>
   );
 };
