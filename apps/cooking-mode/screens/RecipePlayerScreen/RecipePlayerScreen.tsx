@@ -2,6 +2,14 @@ import { FC, useCallback, useEffect, useReducer, useState } from "react";
 import { AppState, ScrollView, Text, View } from "react-native";
 import { Button, Card } from "react-native-paper";
 
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
+import { intervalToDuration, add } from "date-fns";
+
+import uuid from "react-native-uuid";
+
+import { CountdownCircleTimer } from "react-native-countdown-circle-timer";
+
 import { ScreenWrapper } from "@components/shared/ScreenWrapper";
 import { useAppSelector } from "@hooks";
 import { Recipe, RecipePlayerScreenNavigationProps } from "@types";
@@ -22,6 +30,53 @@ export const RecipePlayerScreen: FC<RecipePlayerScreenNavigationProps> = ({
   const [isTimerRunning, setIsTimerRunning] = useState<boolean>(false);
   const [timeRemaining, setTimeRemaining] = useState<number | null>(null);
 
+  const [timerKey, setTimerKey] = useState(uuid.v4() as string);
+
+  const [remainingTime, setRemainingTime] = useState<number | undefined>(
+    undefined
+  );
+  const [initialTimeRemaining, setInitialTimeRemaining] = useState<
+    number | undefined
+  >(undefined);
+
+  const handleResetTimer = (resetAction?: "resume" | "pause") => {
+    setTimeRemaining(() => timeRemaining);
+    setInitialTimeRemaining(() => timeRemaining);
+
+    setTimerKey(() => uuid.v4() as string);
+
+    setIsTimerRunning(() => (resetAction === "resume" ? true : false));
+  };
+
+  const handleTimerAppResume = useCallback(async () => {
+    if (!!isTimerRunning) {
+      const lastOutTimeString = await AsyncStorage.getItem("outTime");
+
+      const lastOutTime = new Date(lastOutTimeString!);
+
+      const inTime = new Date();
+
+      console.log(lastOutTime, inTime);
+
+      const { hours, minutes, seconds } = intervalToDuration({
+        start: lastOutTime,
+        end: inTime,
+      });
+
+      setInitialTimeRemaining(() =>
+        Math.floor(remainingTime! - (hours! * 3600 + minutes! * 60 + seconds!))
+      );
+
+      setTimerKey(() => uuid.v4() as string);
+    }
+  }, [isTimerRunning, remainingTime]);
+
+  const handleTimerAppExit = useCallback(async () => {
+    if (!!isTimerRunning) {
+      await AsyncStorage.setItem("outTime", new Date().toLocaleString());
+    }
+  }, [isTimerRunning]);
+
   useEffect(() => {
     if (!!selectedRecipe) {
       setTargetRecipe(
@@ -29,6 +84,20 @@ export const RecipePlayerScreen: FC<RecipePlayerScreenNavigationProps> = ({
       );
     }
   }, [recipes, selectedRecipe]);
+
+  useEffect(() => {
+    if (!!isAppVisible) {
+      handleTimerAppResume();
+    } else {
+      handleTimerAppExit();
+    }
+  }, [isAppVisible]);
+
+  useEffect(() => {
+    if (!!targetRecipe) {
+      setTimeRemaining(() => targetRecipe.steps[currentStep].duration!);
+    }
+  }, [targetRecipe, currentStep]);
 
   return (
     <ScreenWrapper isPadded>
@@ -40,6 +109,31 @@ export const RecipePlayerScreen: FC<RecipePlayerScreenNavigationProps> = ({
       >
         Home
       </Button>
+      {!!timeRemaining && (
+        <View
+          style={{
+            alignSelf: "flex-start",
+            position: "absolute",
+            bottom: 75,
+            left: 100,
+          }}
+        >
+          <CountdownCircleTimer
+            isPlaying={isAppVisible && isTimerRunning}
+            colors={["#004777", "#F7B801", "#A30000", "#A30000"]}
+            colorsTime={[60, 30, 10, 0]}
+            duration={timeRemaining || 0}
+            initialRemainingTime={initialTimeRemaining || timeRemaining || 0}
+            key={timerKey}
+            onUpdate={(e) => {
+              setRemainingTime(() => e);
+            }}
+            onComplete={() => handleResetTimer("pause")}
+          >
+            {({ remainingTime }) => <Text>{remainingTime}</Text>}
+          </CountdownCircleTimer>
+        </View>
+      )}
       <View style={{ flex: 1 }}>
         <ScrollView>
           <Text>{targetRecipe?.name}</Text>
@@ -57,10 +151,15 @@ export const RecipePlayerScreen: FC<RecipePlayerScreenNavigationProps> = ({
             setCurrentStep((currentStep) =>
               currentStep === 0 ? 0 : currentStep - 1
             );
+
+            handleResetTimer("pause");
           }}
         >
           Prev
         </Button>
+        {isTimerRunning && (
+          <Button onPress={() => handleResetTimer("pause")}>Reset</Button>
+        )}
         {!!targetRecipe?.steps[currentStep].duration && (
           <Button
             mode="contained-tonal"
@@ -84,6 +183,8 @@ export const RecipePlayerScreen: FC<RecipePlayerScreenNavigationProps> = ({
                 ? currentStep + 1
                 : currentStep
             );
+
+            handleResetTimer("pause");
           }}
         >
           Next
