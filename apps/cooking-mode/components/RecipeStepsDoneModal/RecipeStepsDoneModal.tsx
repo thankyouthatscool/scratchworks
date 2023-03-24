@@ -4,8 +4,9 @@ import { Modal, Pressable, Text, View } from "react-native";
 import { Button } from "react-native-paper";
 
 import { useAppDispatch, useAppSelector } from "@hooks";
-import { setIsRecipeStepsDoneModalOpen } from "@store";
-import { Recipe } from "@types";
+import { setIsRecipeStepsDoneModalOpen, setSelectedRecipe } from "@store";
+import { Recipe, RecipeLog, RecipePlayerScreenNavProps } from "@types";
+import { saveLocalStorageRecipeLog } from "@utils";
 
 import {
   ContentWrapper,
@@ -14,8 +15,11 @@ import {
   ModalHeadingText,
   ModalOuterWrapper,
 } from "./Styled";
+import { TextInput } from "react-native-gesture-handler";
 
-export const RecipeStepsDoneModal = () => {
+export const RecipeStepsDoneModal: FC<{
+  nav: RecipePlayerScreenNavProps;
+}> = ({ nav }) => {
   const dispatch = useAppDispatch();
 
   const { isRecipeStepsDoneModalOpen, selectedRecipe, recipes } =
@@ -24,6 +28,14 @@ export const RecipeStepsDoneModal = () => {
       ...recipes,
     }));
 
+  const [recipeLogData, setRecipeLogData] = useState<RecipeLog>({
+    comments: "",
+    date: new Date(),
+    pictures: [],
+    rating: 0,
+    recipeId: undefined,
+  });
+
   const [targetRecipe, setTargetRecipe] = useState<Recipe | null>(null);
 
   useEffect(() => {
@@ -31,6 +43,8 @@ export const RecipeStepsDoneModal = () => {
       setTargetRecipe(
         () => recipes.find((recipe) => recipe.id === selectedRecipe)!
       );
+
+      setRecipeLogData((data) => ({ ...data, recipeId: selectedRecipe }));
     }
   }, [selectedRecipe]);
 
@@ -51,10 +65,21 @@ export const RecipeStepsDoneModal = () => {
         <ContentWrapper>
           <StarRatingComponent
             onRatingChange={(e) => {
-              console.log("TTT", e);
+              setRecipeLogData((data) => ({ ...data, rating: e }));
             }}
           />
-          <Text>Comments</Text>
+          <TextInput
+            multiline
+            onChangeText={(newRecipeLogComments) => {
+              setRecipeLogData((data) => ({
+                ...data,
+                comments: newRecipeLogComments,
+              }));
+            }}
+            numberOfLines={4}
+            placeholder="Comments"
+            style={{ textAlignVertical: "top" }}
+          />
           <Text>Pictures</Text>
           <Text>Food Used/Foods Remaining</Text>
         </ContentWrapper>
@@ -64,11 +89,28 @@ export const RecipeStepsDoneModal = () => {
               mode="contained-tonal"
               onPress={() => {
                 dispatch(setIsRecipeStepsDoneModalOpen(false));
+
+                dispatch(setSelectedRecipe(null));
+
+                nav.navigate("Home");
               }}
             >
               Close
             </Button>
-            <Button mode="contained" style={{ marginLeft: 8 }}>
+            <Button
+              disabled={!recipeLogData.comments || !recipeLogData.rating}
+              mode="contained"
+              onPress={async () => {
+                await saveLocalStorageRecipeLog(recipeLogData);
+
+                dispatch(setIsRecipeStepsDoneModalOpen(false));
+
+                dispatch(setSelectedRecipe(null));
+
+                nav.navigate("Home");
+              }}
+              style={{ marginLeft: 8 }}
+            >
               Save
             </Button>
           </View>
@@ -103,12 +145,5 @@ export const StarRatingComponent: FC<{
         </Pressable>
       ))}
     </View>
-
-    // <Pressable style={{ borderWidth: 2, alignSelf: "flex-start" }}>
-
-    //   {({ pressed }) => {
-    //     return <MDIcons name={pressed ? "star" : "star-border"} size={50} />;
-    //   }}
-    // </Pressable>
   );
 };

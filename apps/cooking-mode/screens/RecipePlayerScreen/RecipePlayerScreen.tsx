@@ -74,6 +74,10 @@ export const RecipePlayerScreen: FC<RecipePlayerScreenNavigationProps> = ({
   }, [isTimerRunning]);
 
   useEffect(() => {
+    setCurrentStep(() => 0);
+  }, [selectedRecipe]);
+
+  useEffect(() => {
     if (!!selectedRecipe) {
       setTargetRecipe(
         () => recipes.find((recipe) => recipe.id === selectedRecipe)!
@@ -91,7 +95,7 @@ export const RecipePlayerScreen: FC<RecipePlayerScreenNavigationProps> = ({
 
   useEffect(() => {
     if (!!targetRecipe) {
-      setTimeRemaining(() => targetRecipe.steps[currentStep].duration!);
+      setTimeRemaining(() => targetRecipe.steps[currentStep]?.duration || 0);
     }
   }, [targetRecipe, currentStep]);
 
@@ -102,9 +106,9 @@ export const RecipePlayerScreen: FC<RecipePlayerScreenNavigationProps> = ({
           <Text style={{ fontSize: 16, fontWeight: "500" }}>
             {targetRecipe?.name}
           </Text>
-          <Text>Duration: {targetRecipe?.steps[currentStep].duration}</Text>
-          <Text>Type: {targetRecipe?.steps[currentStep].type}</Text>
-          <Text>{targetRecipe?.steps[currentStep].description}</Text>
+          <Text>Duration: {targetRecipe?.steps[currentStep]?.duration}</Text>
+          <Text>Type: {targetRecipe?.steps[currentStep]?.type}</Text>
+          <Text>{targetRecipe?.steps[currentStep]?.description}</Text>
         </ScrollView>
       </View>
       {!!timeRemaining && (
@@ -158,7 +162,7 @@ export const RecipePlayerScreen: FC<RecipePlayerScreenNavigationProps> = ({
         {isTimerRunning && (
           <Button onPress={() => handleResetTimer("pause")}>Reset</Button>
         )}
-        {!!targetRecipe?.steps[currentStep].duration && (
+        {!!targetRecipe?.steps[currentStep]?.duration && (
           <Button
             mode="contained-tonal"
             onPress={() => {
@@ -200,7 +204,7 @@ export const RecipePlayerScreen: FC<RecipePlayerScreenNavigationProps> = ({
           </Button>
         )}
       </View>
-      <RecipeStepsDoneModal />
+      <RecipeStepsDoneModal nav={navigation} />
     </ScreenWrapper>
   );
 };

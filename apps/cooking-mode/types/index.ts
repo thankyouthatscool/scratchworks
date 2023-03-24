@@ -1,4 +1,7 @@
-import { DrawerScreenProps } from "@react-navigation/drawer";
+import {
+  DrawerNavigationProp,
+  DrawerScreenProps,
+} from "@react-navigation/drawer";
 
 export type RootDrawerNavigatorProps = {
   Home: undefined;
@@ -18,6 +21,11 @@ export type RecipeScreenNavigationProps = DrawerScreenProps<
 >;
 
 export type RecipePlayerScreenNavigationProps = DrawerScreenProps<
+  RootDrawerNavigatorProps,
+  "RecipePlayer"
+>;
+
+export type RecipePlayerScreenNavProps = DrawerNavigationProp<
   RootDrawerNavigatorProps,
   "RecipePlayer"
 >;
@@ -52,3 +60,16 @@ export type Recipe = {
   reactions: string[];
   tags: string[];
 };
+
+// Cooking Log
+export interface RecipeLog {
+  comments: string;
+  date: Date;
+  pictures: string[];
+  rating: number | undefined;
+  recipeId: string | undefined;
+}
+
+export interface RecipeLogWithId extends RecipeLog {
+  id: string;
+}

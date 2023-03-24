@@ -10,13 +10,27 @@ import {
   ToastAndroid,
   View,
 } from "react-native";
-import { Button as RNPButton, IconButton, Menu } from "react-native-paper";
+import {
+  Button as RNPButton,
+  Card,
+  IconButton,
+  Menu,
+} from "react-native-paper";
 import uuid from "react-native-uuid";
 
 import { useAppDispatch, useAppSelector } from "@hooks";
 import { deleteRecipe, updateRecipe } from "@store";
-import { Recipe, RecipeStep, RecipeScreenNavigationProps } from "@types";
-import { deleteLocalStorageRecipe, updateLocalStorageRecipe } from "@utils";
+import {
+  Recipe,
+  RecipeLogWithId,
+  RecipeStep,
+  RecipeScreenNavigationProps,
+} from "@types";
+import {
+  deleteLocalStorageRecipe,
+  updateLocalStorageRecipe,
+  getLocalStorageRecipeLogs,
+} from "@utils";
 
 import {
   BigTagWrapper,
@@ -69,6 +83,8 @@ export const RecipeScreen: FC<RecipeScreenNavigationProps> = ({
     duration?: number;
     type?: "cook" | "prep";
   }>({ description: "" });
+
+  const [recipeLogs, setRecipeLogs] = useState<RecipeLogWithId[]>([]);
 
   const handleRecipeStepUpdate = useCallback(async () => {
     const targetRecipeStep = recipeSteps.find(
@@ -159,12 +175,22 @@ export const RecipeScreen: FC<RecipeScreenNavigationProps> = ({
     }, 200);
   };
 
+  const handleGetLogs = useCallback(async () => {
+    const { logs, status } = await getLocalStorageRecipeLogs(selectedRecipe!);
+
+    if (status === 200) {
+      setRecipeLogs(() => logs);
+    }
+  }, [selectedRecipe]);
+
   // Effects
   useEffect(() => {
     if (!!selectedRecipe) {
       setTargetRecipe(
         () => recipes.find((recipe) => recipe.id === selectedRecipe)!
       );
+
+      handleGetLogs();
     } else {
       navigation.navigate("Home");
     }
@@ -493,6 +519,13 @@ export const RecipeScreen: FC<RecipeScreenNavigationProps> = ({
             </RecipeActionButtonWrapper>
           )}
         </MainCardWrapper>
+        <Card style={{ marginHorizontal: 8, marginBottom: 8 }}>
+          <Card.Content>
+            {recipeLogs.map((log) => (
+              <Text key={log.id}>{log.comments}</Text>
+            ))}
+          </Card.Content>
+        </Card>
       </ScrollView>
     </RootWrapper>
   );

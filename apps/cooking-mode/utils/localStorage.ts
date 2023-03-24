@@ -1,6 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import uuid from "react-native-uuid";
 
-import type { AppSettings, Recipe } from "@types";
+import type { AppSettings, Recipe, RecipeLog, RecipeLogWithId } from "@types";
 
 // Settings
 
@@ -106,3 +107,60 @@ export const deleteLocalStorageRecipe = async (recipeId: string) => {
 
   await AsyncStorage.setItem("recipes", JSON.stringify(remainingRecipes));
 };
+
+// Logs
+export const saveLocalStorageRecipeLog = async (recipeLog: RecipeLog) => {
+  const existingRecipeLogsString = await AsyncStorage.getItem("recipeLogs");
+
+  try {
+    if (!!existingRecipeLogsString) {
+      const existingRecipeLogs = JSON.parse(
+        existingRecipeLogsString
+      ) as RecipeLogWithId[];
+
+      await AsyncStorage.setItem(
+        "recipeLogs",
+        JSON.stringify([
+          ...existingRecipeLogs,
+          { ...recipeLog, id: uuid.v4() as string },
+        ])
+      );
+    } else {
+      await AsyncStorage.setItem(
+        "recipeLogs",
+        JSON.stringify([{ ...recipeLog, id: uuid.v4() as string }])
+      );
+    }
+
+    return { status: 200 };
+  } catch {
+    return { status: 500 };
+  }
+};
+
+export const getLocalStorageRecipeLogs = async (targetRecipeId: string) => {
+  const existingRecipeLogsString = await AsyncStorage.getItem("recipeLogs");
+
+  try {
+    if (!!existingRecipeLogsString) {
+      const existingRecipeLogs = JSON.parse(
+        existingRecipeLogsString
+      ) as RecipeLogWithId[];
+
+      return {
+        status: 200,
+        logs: existingRecipeLogs.filter(
+          (recipe) => recipe.recipeId === targetRecipeId
+        ),
+      };
+    } else {
+      return { status: 200, logs: [] };
+    }
+  } catch {
+    return { status: 500, logs: [] };
+  }
+};
+
+export const updateLocalStorageRecipeLog = async () => {};
+
+export const deleteLocalStorageRecipeLog = async () => {};

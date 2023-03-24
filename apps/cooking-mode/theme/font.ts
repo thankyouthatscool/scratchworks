@@ -1,2 +1,2 @@
-export const fontSizeHeading = 16;
-export const fontSizeWeight = "500";
+export const fontHeadingSize = 16;
+export const fontHeadingWeight = "500";
