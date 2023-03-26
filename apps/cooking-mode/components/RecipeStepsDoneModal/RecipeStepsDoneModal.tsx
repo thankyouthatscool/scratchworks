@@ -1,9 +1,9 @@
 import MDIcons from "@expo/vector-icons/MaterialIcons";
+import { Image } from "expo-image";
+import * as ImagePicker from "expo-image-picker";
 import { FC, useEffect, useState } from "react";
 import { Modal, Pressable, Text, View } from "react-native";
 import { Button } from "react-native-paper";
-
-import * as ImagePicker from "expo-image-picker";
 
 import { useAppDispatch, useAppSelector } from "@hooks";
 import { setIsRecipeStepsDoneModalOpen, setSelectedRecipe } from "@store";
@@ -14,6 +14,7 @@ import {
   ContentWrapper,
   FooterWrapper,
   HeaderWrapper,
+  ImageWrapper,
   ModalHeadingText,
   ModalOuterWrapper,
 } from "./Styled";
@@ -37,7 +38,6 @@ export const RecipeStepsDoneModal: FC<{
     rating: 0,
     recipeId: undefined,
   });
-
   const [targetRecipe, setTargetRecipe] = useState<Recipe | null>(null);
 
   useEffect(() => {
@@ -51,17 +51,22 @@ export const RecipeStepsDoneModal: FC<{
   }, [selectedRecipe]);
 
   const handlePickImage = async () => {
+    await ImagePicker.requestCameraPermissionsAsync();
+
     try {
-      const res = await ImagePicker.launchCameraAsync({
+      const res = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
         quality: 1,
       });
 
-      console.log(res);
-
       if (!res.canceled) {
-        console.log(res.assets.map((asset) => asset.uri));
+        console.log(res);
+
+        setRecipeLogData((data) => ({
+          ...data,
+          pictures: Array.from(new Set([...data.pictures, res.assets[0].uri])),
+        }));
       }
     } catch (e) {
       console.log(e);
@@ -100,15 +105,39 @@ export const RecipeStepsDoneModal: FC<{
             placeholder="Comments"
             style={{ textAlignVertical: "top" }}
           />
-          <Text>Pictures</Text>
           <Button
             mode="contained"
             onPress={() => {
               handlePickImage();
             }}
           >
-            Add Image
+            Add Image/s
           </Button>
+          {!!recipeLogData.pictures.length && (
+            <ImageWrapper>
+              {recipeLogData.pictures.map((pic) => (
+                <Pressable
+                  key={pic}
+                  onLongPress={() => {
+                    setRecipeLogData((data) => ({
+                      ...data,
+                      pictures: data.pictures.filter((p) => p !== pic),
+                    }));
+                  }}
+                >
+                  <Image
+                    source={pic}
+                    style={{
+                      flex: 1,
+                      width: "50%",
+                      height: 200,
+                    }}
+                    transition={100}
+                  />
+                </Pressable>
+              ))}
+            </ImageWrapper>
+          )}
           <Text>Food Used/Foods Remaining</Text>
         </ContentWrapper>
         <FooterWrapper>

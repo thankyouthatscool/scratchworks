@@ -1,5 +1,5 @@
 import { FC, PropsWithChildren } from "react";
-import { Text, View } from "react-native";
+import { ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export const ModalOuterWrapper: FC<PropsWithChildren> = ({ children }) => {
@@ -33,4 +33,10 @@ export const ContentWrapper: FC<PropsWithChildren> = ({ children }) => {
 
 export const FooterWrapper: FC<PropsWithChildren> = ({ children }) => {
   return <View>{children}</View>;
+};
+
+export const ImageWrapper: FC<PropsWithChildren> = ({ children }) => {
+  return (
+    <ScrollView style={{ flex: 1, borderWidth: 2 }}>{children}</ScrollView>
+  );
 };

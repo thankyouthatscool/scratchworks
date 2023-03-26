@@ -1,4 +1,5 @@
 import MDIcon from "@expo/vector-icons/MaterialIcons";
+import { Image } from "expo-image";
 import { FC, useCallback, useEffect, useState } from "react";
 import {
   Button,
@@ -506,6 +507,28 @@ export const RecipeScreen: FC<RecipeScreenNavigationProps> = ({
                     {`${log.rating}/5`}
                   </Text>
                   <Text>{log.comments}</Text>
+
+                  {!!log.pictures.length && (
+                    <View
+                      style={{
+                        flexDirection: "row",
+                        justifyContent: "flex-start",
+                      }}
+                    >
+                      {log.pictures.map((pic, idx) => (
+                        <Image
+                          key={pic}
+                          source={pic}
+                          style={{
+                            height: 50,
+                            width: 50,
+                            marginLeft: idx === 0 ? 0 : 8,
+                          }}
+                          transition={100}
+                        />
+                      ))}
+                    </View>
+                  )}
                 </View>
               ))}
             </Card.Content>
