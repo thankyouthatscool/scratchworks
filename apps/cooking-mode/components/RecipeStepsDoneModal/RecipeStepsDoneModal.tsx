@@ -160,6 +160,14 @@ export const RecipeStepsDoneModal: FC<{
               onPress={async () => {
                 await saveLocalStorageRecipeLog(recipeLogData);
 
+                setRecipeLogData(() => ({
+                  comments: "",
+                  date: new Date(),
+                  pictures: [],
+                  rating: 0,
+                  recipeId: undefined,
+                }));
+
                 dispatch(setIsRecipeStepsDoneModalOpen(false));
 
                 dispatch(setSelectedRecipe(null));
