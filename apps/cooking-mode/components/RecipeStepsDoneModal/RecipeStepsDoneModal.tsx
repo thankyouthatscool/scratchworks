@@ -3,6 +3,8 @@ import { FC, useEffect, useState } from "react";
 import { Modal, Pressable, Text, View } from "react-native";
 import { Button } from "react-native-paper";
 
+import * as ImagePicker from "expo-image-picker";
+
 import { useAppDispatch, useAppSelector } from "@hooks";
 import { setIsRecipeStepsDoneModalOpen, setSelectedRecipe } from "@store";
 import { Recipe, RecipeLog, RecipePlayerScreenNavProps } from "@types";
@@ -48,6 +50,24 @@ export const RecipeStepsDoneModal: FC<{
     }
   }, [selectedRecipe]);
 
+  const handlePickImage = async () => {
+    try {
+      const res = await ImagePicker.launchCameraAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        quality: 1,
+      });
+
+      console.log(res);
+
+      if (!res.canceled) {
+        console.log(res.assets.map((asset) => asset.uri));
+      }
+    } catch (e) {
+      console.log(e);
+    }
+  };
+
   return (
     <Modal
       animationType="slide"
@@ -81,6 +101,14 @@ export const RecipeStepsDoneModal: FC<{
             style={{ textAlignVertical: "top" }}
           />
           <Text>Pictures</Text>
+          <Button
+            mode="contained"
+            onPress={() => {
+              handlePickImage();
+            }}
+          >
+            Add Image
+          </Button>
           <Text>Food Used/Foods Remaining</Text>
         </ContentWrapper>
         <FooterWrapper>
