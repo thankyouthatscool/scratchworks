@@ -196,7 +196,6 @@ export const RecipePlayerScreen: FC<RecipePlayerScreenNavigationProps> = ({
         {currentStep === targetRecipe?.steps.length! - 1 && (
           <Button
             onPress={() => {
-              console.log("opening the recipes steps done modal");
               dispatch(setIsRecipeStepsDoneModalOpen(true));
             }}
           >

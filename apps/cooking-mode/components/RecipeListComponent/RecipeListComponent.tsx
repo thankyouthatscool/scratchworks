@@ -1,5 +1,5 @@
 import type { DrawerNavigationProp } from "@react-navigation/drawer";
-import { FC, useRef, useState } from "react";
+import { FC, useCallback, useEffect, useRef, useState } from "react";
 import { Dimensions, Pressable, Text, View } from "react-native";
 
 import { useAppDispatch, useAppSelector } from "@hooks";
@@ -12,6 +12,7 @@ import {
   TagWrapperText,
 } from "./Styled";
 import { Recipe, RootDrawerNavigatorProps } from "@types";
+import { getLocalStorageRecipeLogs } from "@utils";
 
 interface RecipeListComponentProps {
   nav: DrawerNavigationProp<RootDrawerNavigatorProps, "Home">;
@@ -76,11 +77,22 @@ export const RecipeCardComponent: FC<{
 }> = ({ index, nav, recipe }) => {
   const dispatch = useAppDispatch();
 
-  const { selectedTags } = useAppSelector(({ recipes }) => recipes);
+  const { recipes, selectedTags } = useAppSelector(({ recipes }) => recipes);
 
   const [isPressedIn, setIsPressedIn] = useState(false);
+  const [logCount, setLogCount] = useState(0);
 
   const pressableRef = useRef<View | null>(null);
+
+  const handleGetRecipeLogCount = useCallback(async () => {
+    const { logs } = await getLocalStorageRecipeLogs(recipe.id);
+
+    setLogCount(() => logs.length);
+  }, []);
+
+  useEffect(() => {
+    handleGetRecipeLogCount();
+  }, []);
 
   return (
     <Pressable
@@ -96,7 +108,12 @@ export const RecipeCardComponent: FC<{
     >
       <RecipeCardComponentWrapper index={index} pressedIn={isPressedIn}>
         <View>
-          <Text style={{ fontWeight: "500" }}>{recipe.name}</Text>
+          <View style={{ alignItems: "center", flexDirection: "row" }}>
+            <Text style={{ fontWeight: "500" }}>{recipe.name}</Text>
+            {!!logCount && (
+              <Text style={{ color: "gray", fontSize: 12 }}> x{logCount}</Text>
+            )}
+          </View>
           <RecipeTagsComponentWrapper>
             {recipe.tags.map((tag) => (
               <TagWrapper isSelected={selectedTags.includes(tag)} key={tag}>

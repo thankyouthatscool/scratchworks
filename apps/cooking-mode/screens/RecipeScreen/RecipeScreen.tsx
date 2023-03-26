@@ -86,26 +86,6 @@ export const RecipeScreen: FC<RecipeScreenNavigationProps> = ({
 
   const [recipeLogs, setRecipeLogs] = useState<RecipeLogWithId[]>([]);
 
-  const handleRecipeStepUpdate = useCallback(async () => {
-    const targetRecipeStep = recipeSteps.find(
-      (recipe) => recipe.id === selectedStepId
-    );
-
-    const targetRecipeStepIndex = recipeSteps.indexOf(targetRecipeStep!);
-
-    setRecipeSteps((recipeSteps) => [
-      ...recipeSteps.slice(0, targetRecipeStepIndex),
-      {
-        ...recipeSteps[targetRecipeStepIndex],
-        duration: selectedRecipeStep?.duration,
-        type: selectedRecipeStep?.type,
-      },
-      ...recipeSteps.slice(targetRecipeStepIndex + 1),
-    ]);
-
-    setIsUpdateNeeded(() => true);
-  }, [recipeSteps, selectedRecipeStep, selectedStepId]);
-
   const handleRecipeUpdate = useCallback(async () => {
     dispatch(
       updateRecipe({
@@ -211,6 +191,12 @@ export const RecipeScreen: FC<RecipeScreenNavigationProps> = ({
       );
     }
   }, [selectedStepId, targetRecipe]);
+
+  useEffect(() => {
+    setTargetRecipe(
+      () => recipes.find((recipe) => recipe.id === selectedRecipe)!
+    );
+  }, [recipes, selectedRecipe]);
 
   return (
     <RootWrapper>
@@ -391,7 +377,7 @@ export const RecipeScreen: FC<RecipeScreenNavigationProps> = ({
               }}
             />
             <View style={{ alignItems: "center", flexDirection: "row" }}>
-              {!!targetRecipe?.steps.length && (
+              {!!targetRecipe?.steps.length && !isUpdateNeeded && (
                 <Pressable
                   onPress={() => {
                     navigation.navigate("RecipePlayer");
@@ -508,24 +494,23 @@ export const RecipeScreen: FC<RecipeScreenNavigationProps> = ({
             }}
             title="Add Step"
           />
-          {!!targetRecipe?.steps.length && (
-            <RecipeActionButtonWrapper>
-              <Button
-                onPress={() => {
-                  navigation.navigate("RecipePlayer");
-                }}
-                title="Start"
-              />
-            </RecipeActionButtonWrapper>
-          )}
         </MainCardWrapper>
-        <Card style={{ marginHorizontal: 8, marginBottom: 8 }}>
-          <Card.Content>
-            {recipeLogs.map((log) => (
-              <Text key={log.id}>{log.comments}</Text>
-            ))}
-          </Card.Content>
-        </Card>
+        {!!recipeLogs.length && (
+          <Card style={{ marginHorizontal: 8, marginBottom: 8 }}>
+            <Card.Content>
+              {recipeLogs.map((log) => (
+                <View key={log.id}>
+                  <Text>
+                    {new Date(log.date).toLocaleTimeString()}{" "}
+                    {new Date(log.date).toLocaleDateString()}{" "}
+                    {`${log.rating}/5`}
+                  </Text>
+                  <Text>{log.comments}</Text>
+                </View>
+              ))}
+            </Card.Content>
+          </Card>
+        )}
       </ScrollView>
     </RootWrapper>
   );

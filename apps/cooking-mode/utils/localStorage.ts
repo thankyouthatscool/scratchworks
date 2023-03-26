@@ -139,6 +139,8 @@ export const saveLocalStorageRecipeLog = async (recipeLog: RecipeLog) => {
 };
 
 export const getLocalStorageRecipeLogs = async (targetRecipeId: string) => {
+  // await AsyncStorage.removeItem("recipeLogs");
+
   const existingRecipeLogsString = await AsyncStorage.getItem("recipeLogs");
 
   try {

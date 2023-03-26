@@ -2,7 +2,6 @@ import { FC, useState } from "react";
 import { Menu } from "react-native-paper";
 
 import { AddNewRecipeModal } from "@components/AddNewRecipeModal";
-import { RecipesControlBar } from "@components/RecipesControlBar";
 import { RecipeListComponent } from "@components/RecipeListComponent";
 import { ScreenWrapper } from "@components/shared/ScreenWrapper";
 import { TagSelectorComponent } from "@components/TagSelectorComponent";
@@ -27,7 +26,6 @@ export const HomeScreen: FC<HomeScreenNavigationProps> = ({ navigation }) => {
     <ScreenWrapper>
       <TagSelectorComponent />
       <AddNewRecipeModal />
-      <RecipesControlBar />
       <RecipeListComponent nav={navigation} />
       <StyledFloatingButton
         icon="plus"

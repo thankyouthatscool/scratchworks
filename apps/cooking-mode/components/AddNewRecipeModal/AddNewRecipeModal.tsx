@@ -32,6 +32,16 @@ export const AddNewRecipeModal = () => {
 
   const { isAddNewRecipeModalOpen } = useAppSelector(({ app }) => app);
 
+  const resetModalData = () => {
+    setNewRecipeData(() => ({
+      name: "",
+      description: "",
+      reactions: ["🌟"],
+      steps: [],
+      tags: ["new"],
+    }));
+  };
+
   const handleAddNewRecipe = useCallback(async () => {
     const newRecipeId = uuid.v4() as string;
 
@@ -41,6 +51,8 @@ export const AddNewRecipeModal = () => {
     });
 
     dispatch(addNewRecipe({ ...newRecipeData, id: newRecipeId }));
+
+    resetModalData();
 
     dispatch(setIsAddNewRecipeModalOpen(false));
   }, [newRecipeData]);
@@ -89,6 +101,8 @@ export const AddNewRecipeModal = () => {
           <AddNewRecipeModalFooterButtonContainer>
             <Button
               onPress={() => {
+                resetModalData();
+
                 dispatch(setIsAddNewRecipeModalOpen(false));
               }}
               mode="contained-tonal"
